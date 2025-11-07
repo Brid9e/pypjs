@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>支付面板组件示例</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+          Helvetica, Arial, sans-serif;
+        padding: 20px;
+        background-color: #f6f8fa;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #24292f;
+      }
+
+      .demo-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-section h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        color: #24292f;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        background-color: #238636;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 12px;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn:hover {
+        background-color: #2ea043;
+      }
+
+      .btn-secondary {
+        background-color: #f6f8fa;
+        color: #24292f;
+      }
+
+      .btn-secondary:hover {
+        background-color: #f3f4f6;
+      }
+
+      .info {
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #57606a;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0d1117;
+        }
+
+        h1 {
+          color: #e6edf3;
+        }
+
+        .demo-section {
+          background: #161b22;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-section h2 {
+          color: #e6edf3;
+        }
+
+        .btn-secondary {
+          background-color: #21262d;
+          color: #e6edf3;
+        }
+
+        .btn-secondary:hover {
+          background-color: #30363d;
+        }
+
+        .info {
+          background-color: #21262d;
+          color: #8b949e;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>支付面板组件示例</h1>
+
+      <div class="demo-section">
+        <h2>基础用法</h2>
+        <button class="btn" onclick="openPaymentPanel()">打开支付面板</button>
+        <div class="info">
+          点击按钮打开支付面板，支持从下而上滑出动画<br />
+          💡 提示：可以通过向下拖拽来关闭面板（拖拽手柄或标题栏区域）
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>设置金额</h2>
+        <button class="btn" onclick="openPaymentPanelWithAmount(99.99)">
+          打开支付面板 (¥99.99)
+        </button>
+        <button
+          class="btn btn-secondary"
+          onclick="openPaymentPanelWithAmount(199.00)">
+          打开支付面板 (¥199.00)
+        </button>
+        <div class="info">
+          可以在打开时传入金额，也可以使用 setAmount() 方法动态设置
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>事件监听</h2>
+        <button class="btn" onclick="openPaymentPanelWithEvents()">
+          打开支付面板（带事件）
+        </button>
+        <div class="info" id="eventInfo">事件信息将显示在这里</div>
+      </div>
+
+      <div class="demo-section">
+        <h2>自定义阈值</h2>
+        <button class="btn" onclick="openPaymentPanelWithCustomThreshold()">
+          打开支付面板（自定义阈值）
+        </button>
+        <div class="info">
+          可以通过属性或方法自定义关闭阈值：<br />
+          • close-threshold: 关闭距离阈值（像素，默认100px）<br />
+          • close-threshold-percent: 关闭距离阈值（百分比，默认0.3即30%）<br />
+          • velocity-threshold: 速度阈值（像素/毫秒，默认0.5）
+        </div>
+      </div>
+    </div>
+
+    <!-- 引入打包后的组件 -->
+    <script src="./dist/payment-panel.js"></script>
+
+    <script>
+      let paymentPanel
+
+      // 初始化组件
+      function initPaymentPanel() {
+        paymentPanel = document.createElement('payment-panel')
+        document.body.appendChild(paymentPanel)
+      }
+
+      // 基础打开
+      function openPaymentPanel() {
+        if (!paymentPanel) initPaymentPanel()
+        paymentPanel.open()
+      }
+
+      // 带金额打开
+      function openPaymentPanelWithAmount(amount) {
+        if (!paymentPanel) initPaymentPanel()
+        paymentPanel.open(amount)
+      }
+
+      // 带事件监听
+      function openPaymentPanelWithEvents() {
+        if (!paymentPanel) {
+          initPaymentPanel()
+
+          // 监听支付确认事件
+          paymentPanel.addEventListener('payment-confirm', (e) => {
+            const { method, amount } = e.detail
+            document.getElementById(
+              'eventInfo'
+            ).textContent = `支付确认: 方式=${method}, 金额=¥${amount}`
+          })
+
+          // 监听关闭事件
+          paymentPanel.addEventListener('payment-close', () => {
+            console.log('支付面板已关闭')
+          })
+        }
+        paymentPanel.open(88.88)
+      }
+
+      // 自定义阈值
+      function openPaymentPanelWithCustomThreshold() {
+        if (!paymentPanel) {
+          initPaymentPanel()
+        }
+        // 设置关闭阈值为150px或40%面板高度，速度阈值为0.8px/ms
+        paymentPanel.setCloseThreshold(150)
+        paymentPanel.setCloseThresholdPercent(0.4)
+        paymentPanel.setVelocityThreshold(0.8)
+        paymentPanel.open(199.99)
+      }
+
+      // 页面加载完成后初始化
+      window.addEventListener('DOMContentLoaded', () => {
+        console.log('支付面板组件已加载')
+      })
+    </script>
+  </body>
+</html>
