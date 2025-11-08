@@ -1,11 +1,12 @@
 import type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
+import { getI18nTexts, type Language, type I18nTexts } from './i18n'
 
 /**
- * 默认配置
- * 支付面板的默认配置值
+ * Default configuration
+ * Default configuration values for the payment panel
  * @author Brid9e
  */
-const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme'>> = {
+const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme' | 'headerTitle' | 'amountLabel' | 'emptyStateText' | 'i18n'>> = {
   allowSwipeToClose: true,
   closeThreshold: 100,
   closeThresholdPercent: 0.3,
@@ -13,16 +14,19 @@ const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme'>> = {
   closeOnOverlayClick: true,
   enablePassword: false,
   passwordLength: 6,
-  headerTitle: 'Payment',
-  amountLabel: 'Payment Amount',
   iconDisplay: 'always',
-  emptyStateText: 'No payment methods available',
-  autoCloseOnConfirm: false
+  autoCloseOnConfirm: false,
+  allowConfirmWithoutMethods: true,
+  hidePaymentMethods: false,
+  amountAlign: 'left',
+  amountFont: '',
+  textFont: '',
+  language: 'en'
 }
 
 /**
- * 支付面板组件
- * 一个基于 Web Components 的移动端支付面板组件，支持拖拽关闭、密码输入、主题自定义等功能
+ * Payment Panel Component
+ * A mobile payment panel component based on Web Components, supporting drag-to-close, password input, theme customization, and more
  * @author Brid9e
  */
 class PaymentPanel extends HTMLElement {
@@ -31,7 +35,7 @@ class PaymentPanel extends HTMLElement {
   private overlay: HTMLElement | null = null
   private panel: HTMLElement | null = null
 
-  // 拖拽相关
+  // Drag-related properties
   private isDragging: boolean = false
   private startY: number = 0
   private currentY: number = 0
@@ -40,7 +44,7 @@ class PaymentPanel extends HTMLElement {
   private lastTime: number = 0
   private velocity: number = 0
 
-  // 配置项（使用默认配置初始化）
+  // Configuration properties (initialized with default values)
   private allowSwipeToClose: boolean = DEFAULT_CONFIG.allowSwipeToClose
   private closeThreshold: number = DEFAULT_CONFIG.closeThreshold
   private closeThresholdPercent: number = DEFAULT_CONFIG.closeThresholdPercent
@@ -48,24 +52,31 @@ class PaymentPanel extends HTMLElement {
   private closeOnOverlayClick: boolean = DEFAULT_CONFIG.closeOnOverlayClick
   private enablePassword: boolean = DEFAULT_CONFIG.enablePassword
   private passwordLength: number = DEFAULT_CONFIG.passwordLength
-  private currentPassword: string = '' // 当前输入的密码
-  private headerTitle: string = DEFAULT_CONFIG.headerTitle
-  private amountLabel: string = DEFAULT_CONFIG.amountLabel
+  private currentPassword: string = '' // Currently entered password
+  private headerTitle?: string // Optional, defaults to i18n text
+  private amountLabel?: string // Optional, defaults to i18n text
   private iconDisplay: 'always' | 'never' | 'auto' = DEFAULT_CONFIG.iconDisplay
-  private emptyStateText: string = DEFAULT_CONFIG.emptyStateText
+  private emptyStateText?: string // Optional, defaults to i18n text
   private autoCloseOnConfirm: boolean = DEFAULT_CONFIG.autoCloseOnConfirm
+  private allowConfirmWithoutMethods: boolean = DEFAULT_CONFIG.allowConfirmWithoutMethods
+  private hidePaymentMethods: boolean = DEFAULT_CONFIG.hidePaymentMethods
+  private amountAlign: 'left' | 'center' | 'right' = DEFAULT_CONFIG.amountAlign
+  private amountFont: string = DEFAULT_CONFIG.amountFont
+  private textFont: string = DEFAULT_CONFIG.textFont
+  private language: Language = DEFAULT_CONFIG.language as Language
+  private customI18n?: Partial<I18nTexts> // Custom i18n texts to override defaults
 
-  // 主题配置
+  // Theme configuration
   private theme: PaymentPanelConfig['theme'] = {}
 
   /**
-   * 默认支付方式列表
+   * Default payment methods list
    * @author Brid9e
    */
   private static readonly DEFAULT_PAYMENT_METHODS: PaymentMethod[] = []
 
   /**
-   * 默认字段映射配置
+   * Default field mapping configuration
    * @author Brid9e
    */
   private static readonly DEFAULT_FIELD_MAPPING: FieldMapping = {
@@ -75,16 +86,16 @@ class PaymentPanel extends HTMLElement {
     valueField: 'value'
   }
 
-  // 支付方式配置
+  // Payment methods configuration
   private paymentMethods: PaymentMethod[] = []
   private fieldMapping: FieldMapping = {}
   private selectedMethod: PaymentMethod | null = null
-  private hasCustomPaymentMethods: boolean = false // 标记是否设置过自定义支付方式
-  private expandedGroups: Set<number> = new Set() // 展开的分组索引
+  private hasCustomPaymentMethods: boolean = false // Flag indicating whether custom payment methods have been set
+  private expandedGroups: Set<number> = new Set() // Expanded group indices
 
   /**
-   * 构造函数
-   * 初始化支付面板组件，创建 Shadow DOM 并设置默认支付方式
+   * Constructor
+   * Initializes the payment panel component, creates Shadow DOM and sets default payment methods
    * @author Brid9e
    */
   constructor() {
@@ -92,16 +103,16 @@ class PaymentPanel extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
     this.isOpen = false
 
-    // 使用默认支付方式（空数组）
+    // Use default payment methods (empty array)
     this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
     this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
     this.selectedMethod = null
   }
 
   /**
-   * 静态属性观察器，用于监听属性变化
-   * 返回需要监听的属性名称数组
-   * @returns {string[]} 需要监听的属性名称数组
+   * Static attribute observer for listening to attribute changes
+   * Returns an array of attribute names to observe
+   * @returns {string[]} Array of attribute names to observe
    * @author Brid9e
    */
   static get observedAttributes() {
@@ -109,11 +120,11 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 属性变化回调函数
-   * 当 observedAttributes 中定义的属性发生变化时触发
-   * @param {string} name - 属性名称
-   * @param {string} oldValue - 旧值
-   * @param {string} newValue - 新值
+   * Attribute change callback
+   * Triggered when attributes defined in observedAttributes change
+   * @param {string} name - Attribute name
+   * @param {string} oldValue - Old value
+   * @param {string} newValue - New value
    * @author Brid9e
    */
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -142,12 +153,12 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 元素连接到 DOM 时调用
-   * 初始化组件，读取属性值，渲染 UI，设置事件监听器
+   * Called when element is connected to DOM
+   * Initializes component, reads attribute values, renders UI, sets up event listeners
    * @author Brid9e
    */
   connectedCallback() {
-    // 读取属性值
+    // Read attribute values
     const closeThreshold = this.getAttribute('close-threshold')
     if (closeThreshold) {
       this.closeThreshold = parseFloat(closeThreshold) || 100
@@ -167,15 +178,18 @@ class PaymentPanel extends HTMLElement {
     this.setupEventListeners()
     this.detectSystemTheme()
 
-    // 初始化密码输入（在 render 之后）
+    // Initialize password input (after render)
     this.initPasswordInput()
     this.updatePasswordUI()
+    this.updatePaymentMethodsVisibility()
+    this.updateAmountStyles()
+    this.updateI18nTexts()
     this.updateDragHandleVisibility()
   }
 
   /**
-   * 元素从 DOM 断开时调用
-   * 清理事件监听器
+   * Called when element is disconnected from DOM
+   * Cleans up event listeners
    * @author Brid9e
    */
   disconnectedCallback() {
@@ -183,24 +197,24 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 检测系统主题
-   * 监听系统深色/浅色模式变化，并自动更新组件主题
+   * Detect system theme
+   * Listens to system dark/light mode changes and automatically updates component theme
    * @author Brid9e
    */
   private detectSystemTheme() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     this.updateTheme(mediaQuery.matches)
 
-    // 监听系统主题变化
+    // Listen to system theme changes
     mediaQuery.addEventListener('change', (e) => {
       this.updateTheme(e.matches)
     })
   }
 
   /**
-   * 更新主题
-   * 根据系统主题设置组件的 data-theme 属性
-   * @param {boolean} isDark - 是否为深色模式
+   * Update theme
+   * Sets the component's data-theme attribute based on system theme
+   * @param {boolean} isDark - Whether it's dark mode
    * @author Brid9e
    */
   private updateTheme(isDark: boolean) {
@@ -213,12 +227,12 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 渲染组件
-   * 生成组件的 HTML 结构和样式，应用主题配置
+   * Render component
+   * Generates component HTML structure and styles, applies theme configuration
    * @author Brid9e
    */
   private render() {
-    // 获取主题色值，如果未设置则使用默认值
+    // Get theme color values, use defaults if not set
     const primaryColor = this.theme?.primaryColor || '#238636'
     const primaryHoverColor = this.theme?.primaryHoverColor || '#2ea043'
     const overlayColor = this.theme?.overlayColor || 'rgba(0, 0, 0, 0.5)'
@@ -443,6 +457,18 @@ class PaymentPanel extends HTMLElement {
           color: var(--text-primary-light);
         }
 
+        .amount-section[data-align="left"] {
+          text-align: left;
+        }
+
+        .amount-section[data-align="center"] {
+          text-align: center;
+        }
+
+        .amount-section[data-align="right"] {
+          text-align: right;
+        }
+
         .amount-value .currency-symbol {
           font-size: 32px;
           vertical-align: baseline;
@@ -468,7 +494,7 @@ class PaymentPanel extends HTMLElement {
           touch-action: pan-y;
           -webkit-overflow-scrolling: touch;
           min-height: 0;
-          /* 隐藏滚动条 */
+          /* Hide scrollbar */
           scrollbar-width: none; /* Firefox */
           -ms-overflow-style: none; /* IE and Edge */
         }
@@ -914,7 +940,7 @@ class PaymentPanel extends HTMLElement {
       </style>
       <div class="overlay"></div>
       <div class="panel">
-        <button class="panel-close-btn" id="closeBtn" aria-label="Close">
+        <button class="panel-close-btn" id="closeBtn" aria-label="${getI18nTexts(this.language, this.customI18n).closeAriaLabel}">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -922,22 +948,22 @@ class PaymentPanel extends HTMLElement {
         <div class="drag-handle"></div>
         <div class="header">
           <div class="header-content">
-            <h3 class="header-title" id="headerTitle">Payment</h3>
+            <h3 class="header-title" id="headerTitle">${getI18nTexts(this.language, this.customI18n).headerTitle}</h3>
           </div>
         </div>
         <div class="content">
           <div class="amount-section">
-            <div class="amount-label">${this.amountLabel}</div>
+            <div class="amount-label">${this.amountLabel || getI18nTexts(this.language, this.customI18n).amountLabel}</div>
             <div class="amount-value"><span class="currency-symbol">¥</span><span id="amount">0.00</span></div>
           </div>
           <div class="payment-methods">
-            <div class="payment-methods-title">Select Payment Method</div>
+            <div class="payment-methods-title">${getI18nTexts(this.language, this.customI18n).paymentMethodsTitle}</div>
             <div class="payment-methods-list-container">
               <div id="payment-methods-list"></div>
             </div>
           </div>
           <div class="password-section" id="passwordSection" style="display: none;">
-            <div class="password-label">Please enter payment password</div>
+            <div class="password-label">${getI18nTexts(this.language, this.customI18n).passwordLabel}</div>
             <div class="password-input-container">
               <div class="password-dots" id="passwordDots"></div>
             </div>
@@ -971,8 +997,8 @@ class PaymentPanel extends HTMLElement {
           </div>
         </div>
         <div class="actions" id="actions">
-          <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
-          <button class="btn btn-primary" id="confirmBtn">Confirm Payment</button>
+          <button class="btn btn-secondary" id="cancelBtn">${getI18nTexts(this.language, this.customI18n).cancelButton}</button>
+          <button class="btn btn-primary" id="confirmBtn">${getI18nTexts(this.language, this.customI18n).confirmButton}</button>
         </div>
       </div>
     `
@@ -980,13 +1006,13 @@ class PaymentPanel extends HTMLElement {
     this.overlay = this.shadow.querySelector('.overlay')
     this.panel = this.shadow.querySelector('.panel')
 
-    // 渲染支付方式列表
+    // Render payment methods list
     this.renderPaymentMethods()
   }
 
   /**
-   * 初始化密码输入
-   * 渲染密码点并设置键盘事件监听器
+   * Initialize password input
+   * Renders password dots and sets up keyboard event listeners
    * @author Brid9e
    */
   private initPasswordInput() {
@@ -995,8 +1021,8 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 渲染密码点
-   * 根据当前密码长度渲染对应数量的密码点
+   * Render password dots
+   * Renders password dots based on current password length
    * @author Brid9e
    */
   private renderPasswordDots() {
@@ -1015,15 +1041,15 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置键盘事件监听器
-   * 为数字键和删除键添加点击事件处理
+   * Setup keyboard event listeners
+   * Adds click event handlers for number keys and delete key
    * @author Brid9e
    */
   private setupKeyboardListeners() {
     const keyboard = this.shadow.querySelector('#keyboard')
     if (!keyboard) return
 
-    // 数字键
+    // Number keys
     const numberKeys = keyboard.querySelectorAll('.keyboard-key[data-key]')
     numberKeys.forEach(key => {
       key.addEventListener('click', () => {
@@ -1036,7 +1062,7 @@ class PaymentPanel extends HTMLElement {
       })
     })
 
-    // 删除键
+    // Delete key
     const deleteKey = this.shadow.querySelector('#deleteKey')
     if (deleteKey) {
       deleteKey.addEventListener('click', () => {
@@ -1049,54 +1075,107 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 检查密码是否输入完成
-   * 当密码长度达到设定值时，触发支付确认事件，根据配置决定是否关闭面板
+   * Confirm payment
+   * Gets selected payment method and amount, triggers payment confirmation event
+   * @param {string} [password] - Payment password, optional
    * @author Brid9e
    */
-  private checkPasswordComplete() {
-    if (this.currentPassword.length === this.passwordLength) {
-      // 密码输入完成，触发支付确认
-      const selectedIndex = this.shadow
-        .querySelector('.payment-method.selected')
-        ?.getAttribute('data-index')
-      const selectedMethod = selectedIndex !== null && selectedIndex !== undefined
-        ? this.paymentMethods[parseInt(selectedIndex, 10)]
-        : null
-      const amount =
-        this.shadow.querySelector('#amount')?.textContent || '0.00'
+  private confirmPayment(password?: string) {
+    // Check if payment methods exist
+    const hasPaymentMethods = this.paymentMethods && this.paymentMethods.length > 0
 
-      this.dispatchEvent(
-        new CustomEvent('payment-confirm', {
-          detail: {
-            method: selectedMethod?.value || selectedMethod,
-            methodData: selectedMethod,
-            amount,
-            password: this.currentPassword
-          },
-          bubbles: true,
-          composed: true
-        })
-      )
+    // If no payment methods and allowConfirmWithoutMethods is false, prevent execution
+    if (!hasPaymentMethods && !this.allowConfirmWithoutMethods) {
+      return
+    }
 
-      // 重置密码
-      this.currentPassword = ''
-      this.renderPasswordDots()
+    // Get selected payment method
+    const selectedIndex = this.shadow
+      .querySelector('.payment-method.selected')
+      ?.getAttribute('data-index')
+    const allMethods = this.getAllMethods()
+    const selectedMethod = selectedIndex !== null && selectedIndex !== undefined
+      ? allMethods[parseInt(selectedIndex, 10)]
+      : null
+    const amount =
+      this.shadow.querySelector('#amount')?.textContent || '0.00'
 
-      // 根据配置决定是否自动关闭
-      if (this.autoCloseOnConfirm) {
-        this.close()
-      }
+    // Get field mapping configuration
+    const valueField = this.fieldMapping.valueField || 'value'
+
+    // Get method value, prioritize valueField, otherwise use the entire object
+    let methodValue = selectedMethod?.[valueField]
+    if (methodValue === undefined) {
+      // Try common field names
+      methodValue = selectedMethod?.value || selectedMethod?.id || selectedMethod
+    }
+
+    // Build event detail
+    const detail: any = {
+      method: methodValue,
+      methodData: selectedMethod,
+      amount
+    }
+
+    // Add password to detail if provided
+    if (password !== undefined) {
+      detail.password = password
+    }
+
+    // Dispatch payment confirmation event
+    this.dispatchEvent(
+      new CustomEvent('payment-confirm', {
+        detail,
+        bubbles: true,
+        composed: true
+      })
+    )
+
+    // Auto-close based on configuration
+    if (this.autoCloseOnConfirm) {
+      this.close()
     }
   }
 
   /**
-   * 更新密码输入 UI
-   * 根据是否启用密码输入来显示/隐藏密码输入区域和操作按钮
+   * Check if password input is complete
+   * When password length reaches the set value, triggers payment confirmation event and closes panel based on configuration
+   * @author Brid9e
+   */
+  private checkPasswordComplete() {
+    if (this.currentPassword.length === this.passwordLength) {
+      // Password input complete, trigger payment confirmation
+      this.confirmPayment(this.currentPassword)
+
+      // Reset password
+      this.currentPassword = ''
+      this.renderPasswordDots()
+    }
+  }
+
+  /**
+   * Update password input UI
+   * Shows/hides password input area and action buttons based on whether password input is enabled
+   * Also considers whether payment methods exist and allowConfirmWithoutMethods configuration
    * @author Brid9e
    */
   private updatePasswordUI() {
     const passwordSection = this.shadow.querySelector('#passwordSection') as HTMLElement
     const actions = this.shadow.querySelector('#actions') as HTMLElement
+
+    // Check if payment methods exist
+    const hasPaymentMethods = this.paymentMethods && this.paymentMethods.length > 0
+
+    // If no payment methods and allowConfirmWithoutMethods is false, hide both
+    if (!hasPaymentMethods && !this.allowConfirmWithoutMethods) {
+      if (passwordSection) {
+        passwordSection.style.display = 'none'
+      }
+      if (actions) {
+        actions.style.display = 'none'
+      }
+      return
+    }
 
     if (this.enablePassword) {
       if (passwordSection) {
@@ -1116,18 +1195,18 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 渲染图标HTML
-   * 根据 iconDisplay 配置和 icon 类型渲染不同的图标
-   * @param {string} icon - 图标值（可能是图片URL或字符串）
-   * @returns {string} 图标HTML字符串
+   * Render icon HTML
+   * Renders different icons based on iconDisplay configuration and icon type
+   * @param {string} icon - Icon value (could be image URL or string)
+   * @returns {string} Icon HTML string
    * @author Brid9e
    */
   private renderIcon(icon: string): string {
-    // 判断是否应该显示图标
+    // Determine whether to show icon
     const shouldShowIcon = () => {
       if (this.iconDisplay === 'never') return false
       if (this.iconDisplay === 'always') return true
-      // auto 模式：有icon值则显示
+      // auto mode: show if icon value exists
       return !!icon
     }
 
@@ -1135,12 +1214,12 @@ class PaymentPanel extends HTMLElement {
       return '<div class="payment-icon hidden"></div>'
     }
 
-    // 如果没有icon值，在auto模式下不显示
+    // If no icon value, don't show in auto mode
     if (!icon && this.iconDisplay === 'auto') {
       return '<div class="payment-icon hidden"></div>'
     }
 
-    // 判断是否为图片URL（简单判断：以 http:// 或 https:// 开头，或包含 .jpg/.png/.svg 等）
+    // Determine if it's an image URL (simple check: starts with http:// or https://, or contains .jpg/.png/.svg etc.)
     const isImageUrl = (str: string): boolean => {
       return /^(https?:\/\/|data:image|\.(jpg|jpeg|png|gif|svg|webp|bmp))/i.test(str.trim())
     }
@@ -1152,7 +1231,7 @@ class PaymentPanel extends HTMLElement {
     `
 
     if (isImageUrl(icon)) {
-      // 图片URL：使用img标签，添加错误处理
+      // Image URL: use img tag with error handling
       const uniqueId = `icon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       return `
         <div class="payment-icon" data-icon-id="${uniqueId}" data-icon-type="image">
@@ -1160,10 +1239,10 @@ class PaymentPanel extends HTMLElement {
         </div>
       `
     } else if (icon) {
-      // 字符串：判断是否为 emoji 或短字符串
+      // String: determine if it's emoji or short string
       const trimmedIcon = icon.trim()
-      // 如果长度 <= 2，可能是 emoji，显示完整字符串
-      // 如果长度 > 2，取第一个字符（使用 Array.from 正确处理多字节字符）
+      // If length <= 2, likely emoji, display full string
+      // If length > 2, take first character (use Array.from to properly handle multi-byte characters)
       const displayText = trimmedIcon.length <= 2
         ? trimmedIcon
         : Array.from(trimmedIcon)[0] || trimmedIcon.charAt(0) || ''
@@ -1173,7 +1252,7 @@ class PaymentPanel extends HTMLElement {
         </div>
       `
     } else {
-      // 没有icon值：显示默认SVG
+      // No icon value: show default SVG
       return `
         <div class="payment-icon">
           ${defaultIconSvg}
@@ -1183,26 +1262,47 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 渲染支付方式列表
-   * 支持普通列表和二级分组列表，处理展开/折叠功能
+   * Update payment methods section visibility
+   * Shows/hides payment methods section based on hidePaymentMethods configuration
+   * @author Brid9e
+   */
+  private updatePaymentMethodsVisibility() {
+    const paymentMethodsSection = this.shadow.querySelector('.payment-methods') as HTMLElement
+    if (paymentMethodsSection) {
+      paymentMethodsSection.style.display = this.hidePaymentMethods ? 'none' : ''
+    }
+  }
+
+  /**
+   * Render payment methods list
+   * Supports regular list and two-level grouped list, handles expand/collapse functionality
    * @author Brid9e
    */
   private renderPaymentMethods() {
     const container = this.shadow.querySelector('#payment-methods-list')
     if (!container) return
 
+    // Update visibility first
+    this.updatePaymentMethodsVisibility()
+
+    // If payment methods section is hidden, don't render content
+    if (this.hidePaymentMethods) {
+      return
+    }
+
     const titleElement = this.shadow.querySelector('.payment-methods-title') as HTMLElement
 
-    // 如果支付方式为空，显示空状态并隐藏标题
+    // If payment methods are empty, show empty state and hide title
     if (!this.paymentMethods || this.paymentMethods.length === 0) {
-      container.innerHTML = `<div class="payment-methods-empty">${this.emptyStateText}</div>`
+      const emptyText = this.emptyStateText || getI18nTexts(this.language, this.customI18n).emptyStateText
+      container.innerHTML = `<div class="payment-methods-empty">${emptyText}</div>`
       if (titleElement) {
         titleElement.style.display = 'none'
       }
       return
     }
 
-    // 有支付方式时显示标题
+    // Show title when payment methods exist
     if (titleElement) {
       titleElement.style.display = ''
     }
@@ -1212,7 +1312,7 @@ class PaymentPanel extends HTMLElement {
     const iconField = this.fieldMapping.iconField || 'icon'
     const valueField = this.fieldMapping.valueField || 'value'
 
-    // 如果没有找到指定字段，尝试常见字段名
+    // If specified field not found, try common field names
     const getField = (item: PaymentMethod, field: string, fallbacks: string[]) => {
       if (item[field] !== undefined) return item[field]
       for (const fallback of fallbacks) {
@@ -1221,7 +1321,7 @@ class PaymentPanel extends HTMLElement {
       return ''
     }
 
-    // 扁平化所有支付方式（包括子项）用于查找选中项
+    // Flatten all payment methods (including children) for finding selected item
     const flattenMethods = (methods: PaymentMethod[]): PaymentMethod[] => {
       const result: PaymentMethod[] = []
       methods.forEach(method => {
@@ -1239,9 +1339,9 @@ class PaymentPanel extends HTMLElement {
 
     container.innerHTML = this.paymentMethods
       .map((method, groupIndex) => {
-        // 检查是否有 children
+        // Check if has children
         if (method.children && method.children.length > 0) {
-          // 分组模式
+          // Group mode
           const title = String(getField(method, titleField, ['title', 'name', 'label']) || '')
           const isExpanded = this.expandedGroups.has(groupIndex)
 
@@ -1289,7 +1389,7 @@ class PaymentPanel extends HTMLElement {
             </div>
           `
         } else {
-          // 普通模式
+          // Normal mode
           const value = String(getField(method, valueField, ['value', 'id', 'code']) || itemIndex)
           const title = String(getField(method, titleField, ['title', 'name', 'label']) || '')
           const subtitle = String(getField(method, subtitleField, ['subtitle', 'desc', 'description']) || '')
@@ -1315,7 +1415,7 @@ class PaymentPanel extends HTMLElement {
       })
       .join('')
 
-    // 设置分组展开/折叠事件
+    // Setup group expand/collapse events
     container.querySelectorAll('.payment-method-group-header').forEach(header => {
       header.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -1329,7 +1429,7 @@ class PaymentPanel extends HTMLElement {
       })
     })
 
-    // 设置图片加载失败处理
+    // Setup image load error handling
     const defaultIconSvg = `
       <svg class="icon-default" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -1347,22 +1447,22 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置事件监听器
-   * 为遮罩层、关闭按钮、确认/取消按钮、支付方式选择等添加事件处理
+   * Setup event listeners
+   * Adds event handlers for overlay, close button, confirm/cancel buttons, payment method selection, etc.
    * @author Brid9e
    */
   private setupEventListeners() {
-    // 遮罩层点击关闭（根据配置决定是否添加）
+    // Overlay click to close (add based on configuration)
     if (this.overlay && this.closeOnOverlayClick) {
       this.overlay.addEventListener('click', () => {
         this.close()
       })
     }
 
-    // 左上角关闭按钮
+    // Top-left close button
     const closeBtn = this.shadow.querySelector('#closeBtn')
     if (closeBtn) {
-      // 使用 mousedown 和 touchstart 确保在拖拽事件之前触发
+      // Use mousedown and touchstart to ensure it triggers before drag events
       closeBtn.addEventListener('mousedown', (e) => {
         e.stopPropagation()
         e.preventDefault()
@@ -1380,7 +1480,7 @@ class PaymentPanel extends HTMLElement {
       })
     }
 
-    // 取消按钮
+    // Cancel button
     const cancelBtn = this.shadow.querySelector('#cancelBtn')
     if (cancelBtn) {
       cancelBtn.addEventListener('click', () => {
@@ -1388,37 +1488,15 @@ class PaymentPanel extends HTMLElement {
       })
     }
 
-    // 确认支付按钮
+    // Confirm payment button
     const confirmBtn = this.shadow.querySelector('#confirmBtn')
     if (confirmBtn) {
       confirmBtn.addEventListener('click', () => {
-        const selectedIndex = this.shadow
-          .querySelector('.payment-method.selected')
-          ?.getAttribute('data-index')
-        const selectedMethod = selectedIndex !== null && selectedIndex !== undefined
-          ? this.paymentMethods[parseInt(selectedIndex, 10)]
-          : null
-        const amount =
-          this.shadow.querySelector('#amount')?.textContent || '0.00'
-        this.dispatchEvent(
-          new CustomEvent('payment-confirm', {
-            detail: {
-              method: selectedMethod?.value || selectedMethod,
-              methodData: selectedMethod,
-              amount
-            },
-            bubbles: true,
-            composed: true
-          })
-        )
-        // 根据配置决定是否自动关闭
-        if (this.autoCloseOnConfirm) {
-          this.close()
-        }
+        this.confirmPayment()
       })
     }
 
-    // 支付方式选择（使用事件委托，因为列表是动态生成的）
+    // Payment method selection (use event delegation since list is dynamically generated)
     if (this.panel) {
       this.panel.addEventListener('click', (e) => {
         const target = (e.target as HTMLElement).closest('.payment-method')
@@ -1427,7 +1505,7 @@ class PaymentPanel extends HTMLElement {
           const index = parseInt(target.getAttribute('data-index') || '0')
           const allMethods = this.getAllMethods()
           if (allMethods[index]) {
-            // 如果切换了支付方式，清空已输入的密码
+            // If payment method changed, clear entered password
             if (this.selectedMethod !== allMethods[index] && this.currentPassword.length > 0) {
               this.currentPassword = ''
               this.renderPasswordDots()
@@ -1441,20 +1519,20 @@ class PaymentPanel extends HTMLElement {
       })
     }
 
-    // 阻止面板内容点击关闭
+    // Prevent panel content click from closing
     if (this.panel) {
       this.panel.addEventListener('click', (e) => {
         e.stopPropagation()
       })
     }
 
-    // 设置拖拽事件监听
+    // Setup drag event listeners
     this.setupDragListeners()
   }
 
   /**
-   * 设置拖拽事件监听器
-   * 为面板、拖拽手柄、头部等添加触摸和鼠标拖拽事件
+   * Setup drag event listeners
+   * Adds touch and mouse drag events for panel, drag handle, header, etc.
    * @author Brid9e
    */
   private setupDragListeners() {
@@ -1464,9 +1542,9 @@ class PaymentPanel extends HTMLElement {
     const header = this.shadow.querySelector('.header')
     const dragTargets = [dragHandle, header].filter(Boolean) as HTMLElement[]
 
-    // 为拖拽目标和面板添加事件监听
+    // Add event listeners for drag targets and panel
     ;[...dragTargets, this.panel].forEach((element) => {
-      // 触摸事件（移动端）
+      // Touch events (mobile)
       element.addEventListener('touchstart', this.handleDragStart.bind(this), {
         passive: false
       })
@@ -1477,11 +1555,11 @@ class PaymentPanel extends HTMLElement {
         passive: false
       })
 
-      // 鼠标事件（桌面端，用于测试）
+      // Mouse events (desktop, for testing)
       element.addEventListener('mousedown', this.handleDragStart.bind(this))
     })
 
-    // 全局事件，确保在拖拽时能继续跟踪
+    // Global events to ensure tracking continues during drag
     document.addEventListener('touchmove', this.handleDragMove.bind(this), {
       passive: false
     })
@@ -1491,15 +1569,15 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 处理拖拽开始
-   * 记录拖拽起始位置和时间，初始化拖拽状态
-   * @param {TouchEvent | MouseEvent} e - 触摸或鼠标事件
+   * Handle drag start
+   * Records drag start position and time, initializes drag state
+   * @param {TouchEvent | MouseEvent} e - Touch or mouse event
    * @author Brid9e
    */
   private handleDragStart(e: TouchEvent | MouseEvent) {
     if (!this.isOpen || !this.panel || !this.allowSwipeToClose) return
 
-    // 检查是否从可拖拽区域开始
+    // Check if starting from draggable area
     const target = e.target as HTMLElement
     const dragHandle = this.shadow.querySelector('.drag-handle')
     const header = this.shadow.querySelector('.header')
@@ -1508,17 +1586,17 @@ class PaymentPanel extends HTMLElement {
     const closeBtn = this.shadow.querySelector('#closeBtn')
     const keyboard = this.shadow.querySelector('#keyboard')
 
-    // 如果点击的是关闭按钮，不处理拖拽
+    // If clicking close button, don't handle drag
     if (closeBtn?.contains(target) || target.closest('#closeBtn')) {
       return
     }
 
-    // 如果点击的是内容区域、操作按钮区域或键盘区域，允许正常交互（滚动、点击）
+    // If clicking content area, action buttons area, or keyboard area, allow normal interaction (scroll, click)
     if (content?.contains(target) || actions?.contains(target) || keyboard?.contains(target)) {
       return
     }
 
-    // 从拖拽手柄、头部或面板其他区域都可以拖拽
+    // Can drag from drag handle, header, or other panel areas
     e.preventDefault()
     e.stopPropagation()
 
@@ -1536,9 +1614,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 处理拖拽移动
-   * 更新面板位置，计算拖拽速度，更新遮罩层透明度
-   * @param {TouchEvent | MouseEvent} e - 触摸或鼠标事件
+   * Handle drag move
+   * Updates panel position, calculates drag velocity, updates overlay opacity
+   * @param {TouchEvent | MouseEvent} e - Touch or mouse event
    * @author Brid9e
    */
   private handleDragMove(e: TouchEvent | MouseEvent) {
@@ -1551,10 +1629,10 @@ class PaymentPanel extends HTMLElement {
     const currentTime = Date.now()
     const deltaY = currentY - this.startY
 
-    // 只允许向下拖拽
+    // Only allow dragging downward
     if (deltaY < 0) return
 
-    // 计算速度
+    // Calculate velocity
     const timeDelta = currentTime - this.lastTime
     if (timeDelta > 0) {
       const distanceDelta = currentY - this.lastY
@@ -1565,10 +1643,10 @@ class PaymentPanel extends HTMLElement {
     this.lastY = currentY
     this.lastTime = currentTime
 
-    // 更新面板位置
+    // Update panel position
     this.panel.style.transform = `translateY(${deltaY}px)`
 
-    // 更新遮罩层透明度
+    // Update overlay opacity
     if (this.overlay) {
       const panelHeight = this.panel.offsetHeight
       const opacity = Math.max(0, 1 - deltaY / panelHeight)
@@ -1577,9 +1655,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 处理拖拽结束
-   * 根据拖拽距离和速度判断是否关闭面板，或回弹到原位置
-   * @param {TouchEvent | MouseEvent} e - 触摸或鼠标事件
+   * Handle drag end
+   * Determines whether to close panel or bounce back to original position based on drag distance and velocity
+   * @param {TouchEvent | MouseEvent} e - Touch or mouse event
    * @author Brid9e
    */
   private handleDragEnd(e: TouchEvent | MouseEvent) {
@@ -1591,7 +1669,7 @@ class PaymentPanel extends HTMLElement {
     this.isDragging = false
     this.panel.classList.remove('dragging')
 
-    // 使用 currentY 获取最终的位移（touchend 时 touches 可能为空）
+    // Use currentY to get final displacement (touches may be empty in touchend)
     const deltaY = this.currentY - this.startY
     const panelHeight = this.panel.offsetHeight
     const threshold = Math.max(
@@ -1599,16 +1677,16 @@ class PaymentPanel extends HTMLElement {
       panelHeight * this.closeThresholdPercent
     )
 
-    // 计算最终速度方向（最后一次移动的方向）
+    // Calculate final velocity direction (direction of last movement)
     const finalVelocity =
       this.lastY !== this.startY
         ? (this.currentY - this.lastY) /
           Math.max(1, this.lastTime - this.startTime)
         : 0
 
-    // 判断是否应该关闭
-    // 1. 最终位移超过阈值
-    // 2. 速度超过阈值 且 最终速度是向下的（防止往上拖后还关闭）
+    // Determine whether to close
+    // 1. Final displacement exceeds threshold
+    // 2. Velocity exceeds threshold AND final velocity is downward (prevent closing after dragging up)
     const shouldClose =
       deltaY > threshold ||
       (this.velocity > this.velocityThreshold &&
@@ -1618,24 +1696,24 @@ class PaymentPanel extends HTMLElement {
     if (shouldClose) {
       this.close()
     } else {
-      // 回弹到原位置
+      // Bounce back to original position
       this.panel.style.transform = ''
       if (this.overlay) {
         this.overlay.style.opacity = ''
       }
     }
 
-    // 重置状态
+    // Reset state
     this.startY = 0
     this.currentY = 0
     this.velocity = 0
   }
 
   /**
-   * 获取事件的 Y 坐标
-   * 兼容触摸事件和鼠标事件
-   * @param {TouchEvent | MouseEvent} e - 触摸或鼠标事件
-   * @returns {number} Y 坐标值
+   * Get event Y coordinate
+   * Compatible with touch events and mouse events
+   * @param {TouchEvent | MouseEvent} e - Touch or mouse event
+   * @returns {number} Y coordinate value
    * @author Brid9e
    */
   private getY(e: TouchEvent | MouseEvent): number {
@@ -1648,32 +1726,32 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 移除事件监听器
-   * 清理所有事件监听器（当前为空实现，保留接口）
+   * Remove event listeners
+   * Cleans up all event listeners (currently empty implementation, interface reserved)
    * @author Brid9e
    */
   private removeEventListeners() {
-    // 清理事件监听器
+    // Clean up event listeners
   }
 
   /**
-   * 打开支付面板
-   * 显示支付面板，可选择性设置支付金额
-   * @param {number} [amount] - 支付金额，可选
+   * Open payment panel
+   * Shows payment panel, optionally sets payment amount
+   * @param {number} [amount] - Payment amount, optional
    * @author Brid9e
    */
   public open(amount?: number) {
     if (this.isOpen) return
 
-    // 每次打开时，如果没有设置过自定义支付方式，恢复为默认值（空数组）
-    // 这样可以防止之前设置的支付方式影响后续打开
+    // Each time it opens, if custom payment methods haven't been set, restore to default (empty array)
+    // This prevents previously set payment methods from affecting subsequent opens
     if (!this.hasCustomPaymentMethods) {
       this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
       this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
       this.selectedMethod = null
       this.renderPaymentMethods()
     }
-    // 每次打开后，重置标记，这样下次打开时如果没有设置就会用默认值
+    // After each open, reset flag so next open will use defaults if not set
     this.hasCustomPaymentMethods = false
 
     this.isOpen = true
@@ -1686,7 +1764,7 @@ class PaymentPanel extends HTMLElement {
       }
     }
 
-    // 触发动画
+    // Trigger animation
     requestAnimationFrame(() => {
       if (this.overlay) {
         this.overlay.classList.add('show')
@@ -1698,8 +1776,8 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 关闭支付面板
-   * 隐藏支付面板，恢复页面滚动，触发关闭事件
+   * Close payment panel
+   * Hides payment panel, restores page scrolling, triggers close event
    * @author Brid9e
    */
   public close() {
@@ -1719,7 +1797,7 @@ class PaymentPanel extends HTMLElement {
       this.panel.style.transform = ''
     }
 
-    // 触发关闭事件
+    // Trigger close event
     this.dispatchEvent(
       new CustomEvent('payment-close', {
         bubbles: true,
@@ -1729,9 +1807,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置支付金额
-   * 更新面板中显示的支付金额
-   * @param {number} amount - 支付金额
+   * Set payment amount
+   * Updates payment amount displayed in panel
+   * @param {number} amount - Payment amount
    * @author Brid9e
    */
   public setAmount(amount: number) {
@@ -1742,9 +1820,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置关闭阈值（像素）
-   * 设置拖拽关闭面板所需的最小像素距离
-   * @param {number} threshold - 关闭阈值（像素）
+   * Set close threshold (pixels)
+   * Sets minimum pixel distance required to close panel by dragging
+   * @param {number} threshold - Close threshold (pixels)
    * @author Brid9e
    */
   public setCloseThreshold(threshold: number) {
@@ -1753,9 +1831,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置关闭阈值（百分比）
-   * 设置拖拽关闭面板所需的最小百分比距离（相对于面板高度）
-   * @param {number} percent - 关闭阈值（0-1之间）
+   * Set close threshold (percentage)
+   * Sets minimum percentage distance required to close panel by dragging (relative to panel height)
+   * @param {number} percent - Close threshold (0-1)
    * @author Brid9e
    */
   public setCloseThresholdPercent(percent: number) {
@@ -1767,9 +1845,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置速度阈值（像素/毫秒）
-   * 设置拖拽关闭面板所需的最小速度
-   * @param {number} threshold - 速度阈值（像素/毫秒）
+   * Set velocity threshold (pixels/ms)
+   * Sets minimum velocity required to close panel by dragging
+   * @param {number} threshold - Velocity threshold (pixels/ms)
    * @author Brid9e
    */
   public setVelocityThreshold(threshold: number) {
@@ -1778,28 +1856,28 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置支付方式列表
-   * 设置自定义支付方式列表和字段映射配置，支持二级分组结构
-   * @param {PaymentMethod[]} [methods] - 支付方式列表，如果为空则使用默认列表
-   * @param {FieldMapping} [fieldMapping] - 字段映射配置，用于自定义字段名
+   * Set payment methods list
+   * Sets custom payment methods list and field mapping configuration, supports two-level grouping structure
+   * @param {PaymentMethod[]} [methods] - Payment methods list, uses default list if empty
+   * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
    * @author Brid9e
    */
   public setPaymentMethods(methods?: PaymentMethod[], fieldMapping?: FieldMapping) {
-    // 如果没有传入，使用空数组；如果传入空数组，保持空数组
+    // If not provided, use empty array; if empty array provided, keep it empty
     if (methods === undefined) {
       this.paymentMethods = []
       this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
-      this.hasCustomPaymentMethods = false // 标记为未设置自定义支付方式
+      this.hasCustomPaymentMethods = false // Mark as custom payment methods not set
     } else {
       this.paymentMethods = methods
       this.fieldMapping = fieldMapping || { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
-      this.hasCustomPaymentMethods = true // 标记为已设置自定义支付方式
+      this.hasCustomPaymentMethods = true // Mark as custom payment methods set
     }
-    // 重新渲染支付方式列表
+    // Re-render payment methods list
     this.renderPaymentMethods()
-    // 重置选中状态
+    // Reset selected state
     if (this.paymentMethods.length > 0) {
-      // 扁平化查找第一个可选项
+      // Flatten to find first selectable option
       const flattenMethods = (methods: PaymentMethod[]): PaymentMethod[] => {
         const result: PaymentMethod[] = []
         methods.forEach(method => {
@@ -1816,12 +1894,14 @@ class PaymentPanel extends HTMLElement {
     } else {
       this.selectedMethod = null
     }
+    // Update UI when payment methods change (may affect password/button visibility)
+    this.updatePasswordUI()
   }
 
   /**
-   * 获取当前选中的支付方式
-   * 返回当前用户选中的支付方式对象
-   * @returns {PaymentMethod | null} 当前选中的支付方式，如果未选中则返回 null
+   * Get currently selected payment method
+   * Returns the payment method object currently selected by user
+   * @returns {PaymentMethod | null} Currently selected payment method, returns null if none selected
    * @author Brid9e
    */
   public getSelectedMethod(): PaymentMethod | null {
@@ -1829,9 +1909,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 获取所有支付方式（扁平化，包括子项）
-   * 将分组结构扁平化，返回所有可选的支付方式
-   * @returns {PaymentMethod[]} 扁平化后的支付方式列表
+   * Get all payment methods (flattened, including children)
+   * Flattens grouped structure, returns all selectable payment methods
+   * @returns {PaymentMethod[]} Flattened payment methods list
    * @author Brid9e
    */
   private getAllMethods(): PaymentMethod[] {
@@ -1847,18 +1927,18 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置点击遮罩层是否关闭
-   * 控制点击遮罩层时是否关闭支付面板
-   * @param {boolean} close - 是否允许点击遮罩层关闭
+   * Set whether clicking overlay closes panel
+   * Controls whether clicking overlay closes payment panel
+   * @param {boolean} close - Whether to allow closing by clicking overlay
    * @author Brid9e
    */
   public setCloseOnOverlayClick(close: boolean) {
     this.closeOnOverlayClick = close
     this.setAttribute('close-on-overlay-click', String(close))
 
-    // 重新设置事件监听
+    // Re-setup event listeners
     if (this.overlay) {
-      // 移除旧的事件监听器（需要重新绑定）
+      // Remove old event listeners (need to rebind)
       const newOverlay = this.overlay.cloneNode(true) as HTMLElement
       if (this.overlay.parentNode) {
         this.overlay.parentNode.replaceChild(newOverlay, this.overlay)
@@ -1874,9 +1954,9 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置是否启用密码输入
-   * 控制是否显示密码输入界面
-   * @param {boolean} enable - 是否启用密码输入
+   * Set whether to enable password input
+   * Controls whether to show password input interface
+   * @param {boolean} enable - Whether to enable password input
    * @author Brid9e
    */
   public setEnablePassword(enable: boolean) {
@@ -1890,26 +1970,26 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置密码位数
-   * 设置支付密码的位数，范围限制在 4-12 位
-   * @param {number} length - 密码位数（4-12）
+   * Set password length
+   * Sets payment password length, limited to 4-12 digits
+   * @param {number} length - Password length (4-12)
    * @author Brid9e
    */
   public setPasswordLength(length: number) {
-    this.passwordLength = Math.max(4, Math.min(12, length)) // 限制在4-12位
+    this.passwordLength = Math.max(4, Math.min(12, length)) // Limit to 4-12 digits
     this.setAttribute('password-length', String(this.passwordLength))
     this.currentPassword = ''
     this.renderPasswordDots()
   }
 
   /**
-   * 统一配置方法
-   * 一次性设置所有配置项，包括拖拽、行为、密码、UI、主题等配置
-   * @param {PaymentPanelConfig} config - 配置对象
+   * Unified configuration method
+   * Sets all configuration options at once, including drag, behavior, password, UI, theme, etc.
+   * @param {PaymentPanelConfig} config - Configuration object
    * @author Brid9e
    */
   public setConfig(config: PaymentPanelConfig) {
-    // 如果配置项存在，使用传入的值；如果不存在，恢复为默认值
+    // If config option exists, use provided value; otherwise restore to default
     this.allowSwipeToClose = config.allowSwipeToClose !== undefined
       ? config.allowSwipeToClose
       : DEFAULT_CONFIG.allowSwipeToClose
@@ -1935,7 +2015,7 @@ class PaymentPanel extends HTMLElement {
       ? config.closeOnOverlayClick
       : DEFAULT_CONFIG.closeOnOverlayClick
     this.setAttribute('close-on-overlay-click', String(this.closeOnOverlayClick))
-    // 重新设置遮罩层点击监听（通过克隆节点来移除所有监听器）
+    // Re-setup overlay click listener (remove all listeners by cloning node)
     if (this.overlay) {
       const newOverlay = this.overlay.cloneNode(true) as HTMLElement
       if (this.overlay.parentNode) {
@@ -1969,28 +2049,28 @@ class PaymentPanel extends HTMLElement {
       this.renderPasswordDots()
     }
 
-    this.headerTitle = config.headerTitle !== undefined
-      ? (config.headerTitle || DEFAULT_CONFIG.headerTitle)
-      : DEFAULT_CONFIG.headerTitle
-    this.updateHeaderTitle()
+    // Header title, amount label, and empty state text are now optional
+    // If not provided, will use i18n texts based on language
+    this.headerTitle = config.headerTitle !== undefined ? config.headerTitle : undefined
+    if (config.headerTitle !== undefined) {
+      this.updateHeaderTitle()
+    }
 
-    this.amountLabel = config.amountLabel !== undefined
-      ? (config.amountLabel || DEFAULT_CONFIG.amountLabel)
-      : DEFAULT_CONFIG.amountLabel
-    this.updateAmountLabel()
+    this.amountLabel = config.amountLabel !== undefined ? config.amountLabel : undefined
+    if (config.amountLabel !== undefined) {
+      this.updateAmountLabel()
+    }
 
     this.iconDisplay = config.iconDisplay !== undefined
       ? config.iconDisplay
       : DEFAULT_CONFIG.iconDisplay
-    // 如果修改了图标显示模式，需要重新渲染支付方式列表
+    // If icon display mode changed, need to re-render payment methods list
     if (config.iconDisplay !== undefined) {
       this.renderPaymentMethods()
     }
 
-    this.emptyStateText = config.emptyStateText !== undefined
-      ? (config.emptyStateText || DEFAULT_CONFIG.emptyStateText)
-      : DEFAULT_CONFIG.emptyStateText
-    // 如果修改了空状态文本，需要重新渲染支付方式列表
+    this.emptyStateText = config.emptyStateText !== undefined ? config.emptyStateText : undefined
+    // If empty state text changed, need to re-render payment methods list
     if (config.emptyStateText !== undefined) {
       this.renderPaymentMethods()
     }
@@ -1999,30 +2079,77 @@ class PaymentPanel extends HTMLElement {
       ? config.autoCloseOnConfirm
       : DEFAULT_CONFIG.autoCloseOnConfirm
 
-    // 设置主题
+    this.allowConfirmWithoutMethods = config.allowConfirmWithoutMethods !== undefined
+      ? config.allowConfirmWithoutMethods
+      : DEFAULT_CONFIG.allowConfirmWithoutMethods
+    // If allowConfirmWithoutMethods changed, need to update UI
+    if (config.allowConfirmWithoutMethods !== undefined) {
+      this.updatePasswordUI()
+    }
+
+    this.hidePaymentMethods = config.hidePaymentMethods !== undefined
+      ? config.hidePaymentMethods
+      : DEFAULT_CONFIG.hidePaymentMethods
+    // If hidePaymentMethods changed, need to update visibility
+    if (config.hidePaymentMethods !== undefined) {
+      this.updatePaymentMethodsVisibility()
+    }
+
+    this.amountAlign = config.amountAlign !== undefined
+      ? config.amountAlign
+      : DEFAULT_CONFIG.amountAlign
+    this.amountFont = config.amountFont !== undefined
+      ? (config.amountFont || DEFAULT_CONFIG.amountFont)
+      : DEFAULT_CONFIG.amountFont
+    this.textFont = config.textFont !== undefined
+      ? (config.textFont || DEFAULT_CONFIG.textFont)
+      : DEFAULT_CONFIG.textFont
+    // If amount styles changed, need to update
+    if (config.amountAlign !== undefined || config.amountFont !== undefined || config.textFont !== undefined) {
+      this.updateAmountStyles()
+    }
+
+    this.language = config.language !== undefined
+      ? config.language
+      : DEFAULT_CONFIG.language as Language
+
+    this.customI18n = config.i18n !== undefined ? config.i18n : undefined
+    // If language or i18n changed, need to update all texts (only if custom texts are not set)
+    if (config.language !== undefined || config.i18n !== undefined) {
+      this.updateI18nTexts()
+      // Also update header title and amount label if not custom
+      if (!this.headerTitle) {
+        this.updateHeaderTitle()
+      }
+      if (!this.amountLabel) {
+        this.updateAmountLabel()
+      }
+    }
+
+    // Set theme
     if (config.theme !== undefined) {
-      // setTheme 方法会自动处理空对象，重置为默认值
+      // setTheme method automatically handles empty object, resets to default
       this.setTheme(config.theme)
     } else {
-      // 如果没有传入 theme，重置为默认主题，避免之前设置的主题影响
+      // If theme not provided, reset to default theme to avoid previous theme affecting
       this.setTheme({})
     }
   }
 
   /**
-   * 重置为默认配置
-   * 将所有配置项重置为默认值
+   * Reset to default configuration
+   * Resets all configuration options to default values
    * @author Brid9e
    */
   public resetConfig() {
     this.setConfig({})
-    // 重置支付方式为默认值（setPaymentMethods 会自动设置 hasCustomPaymentMethods = false）
+    // Reset payment methods to default (setPaymentMethods will automatically set hasCustomPaymentMethods = false)
     this.setPaymentMethods()
   }
 
   /**
-   * 更新拖动滑块显示状态
-   * 根据是否允许下拉关闭来控制拖动滑块的显示/隐藏
+   * Update drag handle visibility
+   * Controls drag handle show/hide based on whether swipe-to-close is allowed
    * @author Brid9e
    */
   private updateDragHandleVisibility() {
@@ -2037,54 +2164,54 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 设置标题
-   * 设置支付面板的标题文本
-   * @param {string} title - 标题文本
+   * Set header title
+   * Sets the text of header title (optional, defaults to i18n text based on language)
+   * @param {string} [title] - Title text, if not provided will use i18n text
    * @author Brid9e
    */
-  public setHeaderTitle(title: string) {
-    this.headerTitle = title || 'Payment'
+  public setHeaderTitle(title?: string) {
+    this.headerTitle = title
     this.updateHeaderTitle()
   }
 
   /**
-   * 更新标题显示
-   * 更新 DOM 中标题元素的文本内容
+   * Update header title display
+   * Updates text content of title element in DOM
    * @author Brid9e
    */
   private updateHeaderTitle() {
     const titleElement = this.shadow.querySelector('#headerTitle') as HTMLElement
     if (titleElement) {
-      titleElement.textContent = this.headerTitle
+      titleElement.textContent = this.headerTitle || getI18nTexts(this.language, this.customI18n).headerTitle
     }
   }
 
   /**
-   * 设置金额标签
-   * 设置支付金额标签的文本
-   * @param {string} label - 金额标签文本
+   * Set amount label
+   * Sets the text of payment amount label (optional, defaults to i18n text based on language)
+   * @param {string} [label] - Amount label text, if not provided will use i18n text
    * @author Brid9e
    */
-  public setAmountLabel(label: string) {
-    this.amountLabel = label || 'Payment Amount'
+  public setAmountLabel(label?: string) {
+    this.amountLabel = label
     this.updateAmountLabel()
   }
 
   /**
-   * 设置空状态文本
-   * 设置当支付方式为空时显示的文本
-   * @param {string} text - 空状态文本
+   * Set empty state text
+   * Sets text displayed when payment methods are empty (optional, defaults to i18n text based on language)
+   * @param {string} [text] - Empty state text, if not provided will use i18n text
    * @author Brid9e
    */
-  public setEmptyStateText(text: string) {
-    this.emptyStateText = text || 'No payment methods available'
+  public setEmptyStateText(text?: string) {
+    this.emptyStateText = text
     this.renderPaymentMethods()
   }
 
   /**
-   * 设置是否自动关闭
-   * 设置输入完密码或点击提交后是否自动关闭面板
-   * @param {boolean} autoClose - 是否自动关闭
+   * Set whether to auto-close
+   * Sets whether to automatically close panel after password input completes or submit button is clicked
+   * @param {boolean} autoClose - Whether to auto-close
    * @author Brid9e
    */
   public setAutoCloseOnConfirm(autoClose: boolean) {
@@ -2092,49 +2219,258 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * 更新金额标签显示
-   * 更新 DOM 中金额标签元素的文本内容
+   * Set whether to allow confirm without payment methods
+   * Sets whether to allow password input and confirm buttons when no payment methods are available
+   * @param {boolean} allow - Whether to allow confirm without payment methods
+   * @author Brid9e
+   */
+  public setAllowConfirmWithoutMethods(allow: boolean) {
+    this.allowConfirmWithoutMethods = allow
+    this.updatePasswordUI()
+  }
+
+  /**
+   * Set whether to hide payment methods section
+   * Sets whether to hide payment methods section, only show amount and confirm button/password input
+   * @param {boolean} hide - Whether to hide payment methods section
+   * @author Brid9e
+   */
+  public setHidePaymentMethods(hide: boolean) {
+    this.hidePaymentMethods = hide
+    this.updatePaymentMethodsVisibility()
+  }
+
+  /**
+   * Set amount alignment
+   * Sets the text alignment for amount section
+   * @param {'left' | 'center' | 'right'} align - Alignment direction
+   * @author Brid9e
+   */
+  public setAmountAlign(align: 'left' | 'center' | 'right') {
+    this.amountAlign = align
+    this.updateAmountStyles()
+  }
+
+  /**
+   * Set amount font
+   * Sets the font family for amount value
+   * @param {string} font - Font family string, e.g. "Arial, sans-serif"
+   * @author Brid9e
+   */
+  public setAmountFont(font: string) {
+    this.amountFont = font || ''
+    this.updateAmountStyles()
+  }
+
+  /**
+   * Set text font
+   * Sets the font family for other text elements
+   * @param {string} font - Font family string, e.g. "Arial, sans-serif"
+   * @author Brid9e
+   */
+  public setTextFont(font: string) {
+    this.textFont = font || ''
+    this.updateAmountStyles()
+  }
+
+  /**
+   * Set language
+   * Sets the language for i18n texts
+   * @param {Language} lang - Language code ('zh' | 'en' | 'ja' | 'ru')
+   * @author Brid9e
+   */
+  public setLanguage(lang: Language) {
+    this.language = lang
+    this.updateI18nTexts()
+    // Also update header title and amount label if not custom
+    if (!this.headerTitle) {
+      this.updateHeaderTitle()
+    }
+    if (!this.amountLabel) {
+      this.updateAmountLabel()
+    }
+  }
+
+  /**
+   * Set custom i18n texts
+   * Sets custom i18n texts to override default translations, partial override supported
+   * @param {Partial<I18nTexts>} i18n - Custom i18n texts object
+   * @author Brid9e
+   */
+  public setI18n(i18n: Partial<I18nTexts>) {
+    this.customI18n = i18n
+    this.updateI18nTexts()
+    // Also update header title and amount label if not custom
+    if (!this.headerTitle) {
+      this.updateHeaderTitle()
+    }
+    if (!this.amountLabel) {
+      this.updateAmountLabel()
+    }
+  }
+
+  /**
+   * Update amount label display
+   * Updates text content of amount label element in DOM
    * @author Brid9e
    */
   private updateAmountLabel() {
     const labelElement = this.shadow.querySelector('.amount-label') as HTMLElement
     if (labelElement) {
-      labelElement.textContent = this.amountLabel
+      labelElement.textContent = this.amountLabel || getI18nTexts(this.language, this.customI18n).amountLabel
     }
   }
 
   /**
-   * 设置主题
-   * 设置支付面板的主题配色，包括主色调、背景色、文本色等
-   * @param {PaymentPanelConfig['theme']} theme - 主题配置对象，传入空对象会重置为默认主题
+   * Update i18n texts
+   * Updates all text elements based on current language
+   * @author Brid9e
+   */
+  private updateI18nTexts() {
+    const texts = getI18nTexts(this.language, this.customI18n)
+
+    // Update header title
+    const titleElement = this.shadow.querySelector('#headerTitle') as HTMLElement
+    if (titleElement && !this.headerTitle) {
+      titleElement.textContent = texts.headerTitle
+    }
+
+    // Update amount label
+    const amountLabel = this.shadow.querySelector('.amount-label') as HTMLElement
+    if (amountLabel && !this.amountLabel) {
+      amountLabel.textContent = texts.amountLabel
+    }
+
+    // Update payment methods title
+    const paymentMethodsTitle = this.shadow.querySelector('.payment-methods-title') as HTMLElement
+    if (paymentMethodsTitle) {
+      paymentMethodsTitle.textContent = texts.paymentMethodsTitle
+    }
+
+    // Update password label
+    const passwordLabel = this.shadow.querySelector('.password-label') as HTMLElement
+    if (passwordLabel) {
+      passwordLabel.textContent = texts.passwordLabel
+    }
+
+    // Update buttons
+    const cancelBtn = this.shadow.querySelector('#cancelBtn') as HTMLElement
+    if (cancelBtn) {
+      cancelBtn.textContent = texts.cancelButton
+    }
+
+    const confirmBtn = this.shadow.querySelector('#confirmBtn') as HTMLElement
+    if (confirmBtn) {
+      confirmBtn.textContent = texts.confirmButton
+    }
+
+    // Update close button aria-label
+    const closeBtn = this.shadow.querySelector('#closeBtn') as HTMLElement
+    if (closeBtn) {
+      closeBtn.setAttribute('aria-label', texts.closeAriaLabel)
+    }
+
+    // Update empty state text if not custom
+    if (!this.emptyStateText) {
+      this.renderPaymentMethods()
+    }
+  }
+
+  /**
+   * Update amount section styles
+   * Updates alignment and font styles for amount section
+   * @author Brid9e
+   */
+  private updateAmountStyles() {
+    const amountSection = this.shadow.querySelector('.amount-section') as HTMLElement
+    if (amountSection) {
+      // Set alignment
+      amountSection.setAttribute('data-align', this.amountAlign)
+
+      // Set amount font
+      const amountValue = this.shadow.querySelector('.amount-value') as HTMLElement
+      if (amountValue && this.amountFont) {
+        amountValue.style.fontFamily = this.amountFont
+      } else if (amountValue && !this.amountFont) {
+        amountValue.style.fontFamily = ''
+      }
+
+      // Set text font for label
+      const amountLabel = this.shadow.querySelector('.amount-label') as HTMLElement
+      if (amountLabel && this.textFont) {
+        amountLabel.style.fontFamily = this.textFont
+      } else if (amountLabel && !this.textFont) {
+        amountLabel.style.fontFamily = ''
+      }
+    }
+
+    // Apply text font to other text elements if specified
+    if (this.textFont) {
+      const style = document.createElement('style')
+      style.id = 'text-font-style'
+      style.textContent = `
+        :host {
+          font-family: ${this.textFont} !important;
+        }
+        .header-title,
+        .payment-methods-title,
+        .payment-name,
+        .payment-desc,
+        .password-label,
+        .btn {
+          font-family: ${this.textFont} !important;
+        }
+      `
+      // Remove existing style if any
+      const existingStyle = this.shadow.querySelector('#text-font-style')
+      if (existingStyle) {
+        existingStyle.remove()
+      }
+      this.shadow.appendChild(style)
+    } else {
+      // Remove text font style if not specified
+      const existingStyle = this.shadow.querySelector('#text-font-style')
+      if (existingStyle) {
+        existingStyle.remove()
+      }
+    }
+  }
+
+  /**
+   * Set theme
+   * Sets payment panel theme colors, including primary color, background color, text color, etc.
+   * @param {PaymentPanelConfig['theme']} theme - Theme configuration object, passing empty object resets to default theme
    * @author Brid9e
    */
   public setTheme(theme: PaymentPanelConfig['theme']) {
-    // 如果传入空对象或 null/undefined，重置为主题默认值（空对象）
-    // 这样在 render 时会使用默认值
+    // If empty object or null/undefined passed, reset to theme default (empty object)
+    // This will use default values in render
     if (!theme || Object.keys(theme).length === 0) {
       this.theme = {}
     } else {
       this.theme = theme
     }
-    // 重新渲染以应用新主题
+    // Re-render to apply new theme
     this.render()
-    // 重新设置事件监听器
+    // Re-setup event listeners
     this.setupEventListeners()
-    // 重新初始化密码输入
+    // Re-initialize password input
     this.initPasswordInput()
     this.updatePasswordUI()
+    this.updatePaymentMethodsVisibility()
+    this.updateAmountStyles()
     this.updateDragHandleVisibility()
-    // 重新渲染支付方式列表
+    this.updateI18nTexts()
+    // Re-render payment methods list
     this.renderPaymentMethods()
-    // 更新标题
+    // Update title
     this.updateHeaderTitle()
   }
 
   /**
-   * 获取当前主题
-   * 返回当前设置的主题配置对象
-   * @returns {PaymentPanelConfig['theme']} 当前主题配置对象
+   * Get current theme
+   * Returns currently set theme configuration object
+   * @returns {PaymentPanelConfig['theme']} Current theme configuration object
    * @author Brid9e
    */
   public getTheme(): PaymentPanelConfig['theme'] {
@@ -2142,12 +2478,12 @@ class PaymentPanel extends HTMLElement {
   }
 }
 
-// 注册自定义元素
+// Register custom element
 if (!customElements.get('payment-panel')) {
   customElements.define('payment-panel', PaymentPanel)
 }
 
-// 导出类型（从 types 文件夹重新导出）
+// Export types (re-export from types folder)
 export type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
 
 export default PaymentPanel

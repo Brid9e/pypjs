@@ -2,7 +2,7 @@ English | [简体中文](https://github.com/Brid9e/pypjs/blob/main/README-ZH.md)
 
 # pypjs
 
-A simple and easy-to-use payment panel component.
+A simple, easy-to-use, framework-agnostic payment panel component.
 
 ## Usage
 
@@ -153,12 +153,23 @@ pypjs.setConfig({
   closeOnOverlayClick: false, // Close on overlay click
   enablePassword: true, // Enable password input
   passwordLength: 6, // Password length (default 6)
-  headerTitle: 'Confirm Payment', // Header title (default "Payment")
-  amountLabel: 'Payment Amount', // Amount label (default "Payment Amount")
+  headerTitle: 'Confirm Payment', // Header title (optional, defaults to i18n)
+  amountLabel: 'Payment Amount', // Amount label (optional, defaults to i18n)
   iconDisplay: 'always', // Icon display mode: 'always' | 'never' | 'auto' (default 'always')
   closeThreshold: 150, // Close distance threshold (pixels)
   closeThresholdPercent: 0.4, // Close distance threshold (percentage, 0-1)
   velocityThreshold: 0.8, // Velocity threshold (pixels/ms)
+  allowConfirmWithoutMethods: true, // Allow confirm when no payment methods (default true)
+  hidePaymentMethods: false, // Hide payment methods section (default false)
+  amountAlign: 'left', // Amount alignment: 'left' | 'center' | 'right' (default 'left')
+  amountFont: 'Arial, sans-serif', // Amount font (optional)
+  textFont: 'Arial, sans-serif', // Text font for other elements (optional)
+  language: 'en', // Language setting: 'zh' | 'en' | 'ja' | 'ru' (default 'en')
+  i18n: {
+    // Custom i18n texts (partial override, optional)
+    headerTitle: 'Custom Title',
+    confirmButton: 'Confirm'
+  },
   theme: {
     // Theme configuration
     primaryColor: '#ff4d4f',
@@ -201,6 +212,30 @@ pypjs.setTheme({
   primaryHoverColor: '#ff7875',
   panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
   panelBgDark: '#1a0f0f'
+})
+
+// Set allow confirm without payment methods
+pypjs.setAllowConfirmWithoutMethods(false)
+
+// Set hide payment methods section
+pypjs.setHidePaymentMethods(true)
+
+// Set amount alignment
+pypjs.setAmountAlign('center') // 'left' | 'center' | 'right'
+
+// Set amount font
+pypjs.setAmountFont('Arial, sans-serif')
+
+// Set text font
+pypjs.setTextFont('Arial, sans-serif')
+
+// Set language
+pypjs.setLanguage('zh') // 'zh' | 'en' | 'ja' | 'ru'
+
+// Set custom i18n texts (partial override)
+pypjs.setI18n({
+  headerTitle: 'Custom Title',
+  confirmButton: 'Confirm'
 })
 
 // Reset to default configuration
@@ -256,8 +291,8 @@ pypjs.off('payment-confirm', handler)
   - `closeOnOverlayClick?: boolean` - Close on overlay click (default true)
   - `enablePassword?: boolean` - Enable password input (default false)
   - `passwordLength?: number` - Password length (default 6, range 4-12)
-  - `headerTitle?: string` - Header title text (default "Payment")
-  - `amountLabel?: string` - Amount label text (default "Payment Amount")
+  - `headerTitle?: string` - Header title text (optional, defaults to i18n)
+  - `amountLabel?: string` - Amount label text (optional, defaults to i18n)
   - `iconDisplay?: 'always' | 'never' | 'auto'` - Icon display mode (default "always")
     - `always`: Always show icon area
     - `never`: Never show icon area
@@ -265,6 +300,21 @@ pypjs.off('payment-confirm', handler)
   - `closeThreshold?: number` - Close distance threshold (pixels, default 100)
   - `closeThresholdPercent?: number` - Close distance threshold (percentage, default 0.3)
   - `velocityThreshold?: number` - Velocity threshold (pixels/ms, default 0.5)
+  - `allowConfirmWithoutMethods?: boolean` - Allow confirm when no payment methods (default true)
+  - `hidePaymentMethods?: boolean` - Hide payment methods section (default false)
+  - `amountAlign?: 'left' | 'center' | 'right'` - Amount alignment (default 'left')
+  - `amountFont?: string` - Amount font (optional, e.g. "Arial, sans-serif")
+  - `textFont?: string` - Text font for other elements (optional, e.g. "Arial, sans-serif")
+  - `language?: 'zh' | 'en' | 'ja' | 'ru'` - Language setting (default 'en')
+  - `i18n?: Partial<I18nTexts>` - Custom i18n texts (partial override, optional)
+    - `headerTitle?: string` - Header title text
+    - `amountLabel?: string` - Amount label text
+    - `paymentMethodsTitle?: string` - Payment methods title text
+    - `passwordLabel?: string` - Password label text
+    - `cancelButton?: string` - Cancel button text
+    - `confirmButton?: string` - Confirm button text
+    - `emptyStateText?: string` - Empty state text
+    - `closeAriaLabel?: string` - Close button aria label
   - `theme?: ThemeConfig` - Theme configuration object
     - `primaryColor?: string` - Primary color (default "#238636")
     - `primaryHoverColor?: string` - Primary hover color (default "#2ea043")
@@ -282,14 +332,21 @@ pypjs.off('payment-confirm', handler)
 
 #### Individual Configuration Methods
 
-- `pypjs.setHeaderTitle(title: string)` - Set header title text
-- `pypjs.setAmountLabel(label: string)` - Set amount label text
+- `pypjs.setHeaderTitle(title?: string)` - Set header title text (optional, defaults to i18n if not provided)
+- `pypjs.setAmountLabel(label?: string)` - Set amount label text (optional, defaults to i18n if not provided)
 - `pypjs.setCloseThreshold(threshold: number)` - Set close distance threshold (pixels)
 - `pypjs.setCloseThresholdPercent(percent: number)` - Set close distance threshold (percentage, 0-1)
 - `pypjs.setVelocityThreshold(threshold: number)` - Set velocity threshold (pixels/ms)
 - `pypjs.setCloseOnOverlayClick(close: boolean)` - Set whether to close on overlay click
 - `pypjs.setEnablePassword(enable: boolean)` - Set whether to enable password input
 - `pypjs.setPasswordLength(length: number)` - Set password length (4-12 digits)
+- `pypjs.setAllowConfirmWithoutMethods(allow: boolean)` - Set whether to allow confirm without payment methods
+- `pypjs.setHidePaymentMethods(hide: boolean)` - Set whether to hide payment methods section
+- `pypjs.setAmountAlign(align: 'left' | 'center' | 'right')` - Set amount alignment
+- `pypjs.setAmountFont(font: string)` - Set amount font
+- `pypjs.setTextFont(font: string)` - Set text font
+- `pypjs.setLanguage(lang: 'zh' | 'en' | 'ja' | 'ru')` - Set language
+- `pypjs.setI18n(i18n: Partial<I18nTexts>)` - Set custom i18n texts (partial override)
 - `pypjs.setTheme(theme: ThemeConfig)` - Set theme configuration
 - `pypjs.getTheme()` - Get current theme configuration
 
@@ -375,6 +432,137 @@ pypjs.setPaymentMethods([
   { id: 1, name: 'WeChat Pay', icon: '💳' }, // emoji
   { id: 2, name: 'Alipay', icon: 'A' } // single character
 ])
+```
+
+## Internationalization (i18n)
+
+The component has built-in internationalization support, with default support for Chinese (zh), English (en), Japanese (ja), and Russian (ru).
+
+### Language Setting
+
+```javascript
+// Set language
+pypjs.setLanguage('zh') // 'zh' | 'en' | 'ja' | 'ru'
+
+// Set in setConfig
+pypjs.setConfig({
+  language: 'zh'
+})
+```
+
+### Custom i18n Texts
+
+You can partially override default i18n texts using the `i18n` configuration option. Unset texts will use the default values for the selected language:
+
+```javascript
+// Partially override i18n texts
+pypjs.setI18n({
+  headerTitle: 'Custom Title',
+  confirmButton: 'Confirm Payment'
+})
+
+// Set in setConfig
+pypjs.setConfig({
+  language: 'zh',
+  i18n: {
+    headerTitle: 'Custom Title',
+    confirmButton: 'Confirm Payment'
+  }
+})
+```
+
+### Supported i18n Text Fields
+
+- `headerTitle` - Header title text
+- `amountLabel` - Amount label text
+- `paymentMethodsTitle` - Payment methods title text
+- `passwordLabel` - Password label text
+- `cancelButton` - Cancel button text
+- `confirmButton` - Confirm button text
+- `emptyStateText` - Empty state text
+- `closeAriaLabel` - Close button aria label
+
+### Text Priority
+
+1. If `headerTitle`, `amountLabel`, `emptyStateText` etc. are set individually, these values take priority
+2. If `i18n` custom texts are set, use custom values
+3. Otherwise, use default texts for the selected language
+
+```javascript
+// Example: headerTitle priority
+pypjs.setConfig({
+  language: 'zh',
+  headerTitle: 'Directly Set Title', // Highest priority
+  i18n: {
+    headerTitle: 'i18n Set Title' // Used if headerTitle is not set
+  }
+  // If neither is set, use default 'zh' language value '支付'
+})
+```
+
+## Amount Alignment and Fonts
+
+The component supports custom amount alignment and font settings.
+
+### Amount Alignment
+
+```javascript
+// Set amount alignment
+pypjs.setAmountAlign('center') // 'left' | 'center' | 'right'
+
+// Set in setConfig
+pypjs.setConfig({
+  amountAlign: 'center'
+})
+```
+
+### Font Settings
+
+```javascript
+// Set amount font
+pypjs.setAmountFont('Arial, sans-serif')
+
+// Set text font for other elements
+pypjs.setTextFont('Arial, sans-serif')
+
+// Set in setConfig
+pypjs.setConfig({
+  amountFont: 'Arial, sans-serif',
+  textFont: 'Arial, sans-serif'
+})
+```
+
+## Payment Methods Control
+
+### Behavior When No Payment Methods
+
+When there are no payment methods, you can control whether confirmation is allowed using the `allowConfirmWithoutMethods` configuration:
+
+```javascript
+// Disallow confirm when no payment methods (hide password input and confirm button)
+pypjs.setAllowConfirmWithoutMethods(false)
+
+// Set in setConfig
+pypjs.setConfig({
+  allowConfirmWithoutMethods: false
+})
+```
+
+- `true` (default): Normally display password input and confirm button, allow submission
+- `false`: Hide password input and confirm button, prevent submission event
+
+### Hide Payment Methods Section
+
+If you don't need to display the payment methods selection area, you can hide it and only show the amount and confirm button/password input:
+
+```javascript
+// Hide payment methods section
+pypjs.setHidePaymentMethods(true)
+
+// Set in setConfig
+pypjs.setConfig({
+  hidePaymentMethods: true
+})
 ```
 
 ## Theme

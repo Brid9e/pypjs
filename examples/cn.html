@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>支付面板组件示例</title>
+    <title>PYPJS 示例</title>
     <style>
       * {
         margin: 0;
@@ -214,7 +214,7 @@
       <div class="demo-section">
         <h2>自定义主题</h2>
         <button class="btn" onclick="openPanelWithRedTheme()">
-          打开支付面板（红色主题）
+          打开支付面板（渐变主题）
         </button>
         <div class="info">
           使用 setTheme() 自定义主题颜色：<br />
@@ -251,6 +251,87 @@
         </button>
         <div class="info">
           当支付方式为空时，显示空状态文本。可以通过 setConfig() 或 setEmptyStateText() 自定义空状态文本。
+        </div>
+      </div>
+
+      <!-- Allow Confirm Without Methods -->
+      <div class="demo-section">
+        <h2>无支付方式时允许确认</h2>
+        <button class="btn" onclick="openPanelAllowConfirmWithoutMethods(true)">
+          允许确认（默认）
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelAllowConfirmWithoutMethods(false)">
+          禁止确认
+        </button>
+        <div class="info">
+          控制当没有支付方式时，是否显示密码输入/键盘和确认按钮。<br />
+          • allowConfirmWithoutMethods: true（默认）- 正常显示密码输入和确认按钮<br />
+          • allowConfirmWithoutMethods: false - 隐藏密码输入和确认按钮，阻止支付确认事件触发
+        </div>
+      </div>
+
+      <!-- Hide Payment Methods -->
+      <div class="demo-section">
+        <h2>隐藏支付方式区域</h2>
+        <button class="btn" onclick="openPanelHidePaymentMethods(true, false)">
+          隐藏支付方式（带确认按钮）
+        </button>
+        <button class="btn" onclick="openPanelHidePaymentMethods(true, true)">
+          隐藏支付方式（带密码输入）
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelHidePaymentMethods(false, false)">
+          显示支付方式（默认）
+        </button>
+        <div class="info">
+          控制是否隐藏支付方式区域，只显示金额和确认按钮/密码输入。<br />
+          • hidePaymentMethods: true - 隐藏支付方式区域，只显示金额和确认按钮/密码输入<br />
+          • hidePaymentMethods: false（默认）- 正常显示支付方式区域
+        </div>
+      </div>
+
+      <!-- Amount Alignment and Fonts -->
+      <div class="demo-section">
+        <h2>金额对齐和字体</h2>
+        <button class="btn" onclick="openPanelWithAmountAlign('left')">
+          金额左对齐（默认）
+        </button>
+        <button class="btn" onclick="openPanelWithAmountAlign('center')">
+          金额居中
+        </button>
+        <button class="btn" onclick="openPanelWithAmountAlign('right')">
+          金额右对齐
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelWithCustomFonts()">
+          自定义字体
+        </button>
+        <div class="info">
+          控制金额对齐方式和字体：<br />
+          • amountAlign: 'left' | 'center' | 'right'（默认: 'left'）- 金额文本对齐方式<br />
+          • amountFont: string - 金额值的字体，例如 "Arial, sans-serif"<br />
+          • textFont: string - 其他文本元素的字体，例如 "Helvetica, sans-serif"
+        </div>
+      </div>
+
+      <!-- Language and Custom i18n -->
+      <div class="demo-section">
+        <h2>语言和自定义多语言</h2>
+        <button class="btn" onclick="openPanelWithLanguage('zh')">
+          中文
+        </button>
+        <button class="btn" onclick="openPanelWithLanguage('ja')">
+          日文（日本語）
+        </button>
+        <button class="btn" onclick="openPanelWithLanguage('ru')">
+          俄文（Русский）
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelWithCustomI18n()">
+          自定义多语言（部分覆盖）
+        </button>
+        <div class="info">
+          控制语言和自定义多语言文本：<br />
+          • language: 'zh' | 'en' | 'ja' | 'ru'（默认: 'en'）- 设置所有文本的语言<br />
+          • i18n: Partial&lt;I18nTexts&gt; - 自定义多语言文本，支持部分覆盖<br />
+          • 只需设置需要自定义的字段，其他字段会使用默认翻译
         </div>
       </div>
     </div>
@@ -549,6 +630,79 @@
 
         pypjs.on('payment-confirm', eventConfirmHandler)
         pypjs.open(99.99)
+      }
+
+      // 无支付方式时允许确认示例
+      function openPanelAllowConfirmWithoutMethods(allow) {
+        pypjs.setConfig({
+          allowConfirmWithoutMethods: allow,
+          enablePassword: true,
+          emptyStateText: 'No payment methods available'
+        })
+
+        pypjs.setPaymentMethods([])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 隐藏支付方式示例
+      function openPanelHidePaymentMethods(hide, enablePassword) {
+        pypjs.setConfig({
+          hidePaymentMethods: hide,
+          enablePassword: enablePassword || false
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // 金额对齐示例
+      function openPanelWithAmountAlign(align) {
+        pypjs.setConfig({
+          amountAlign: align
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 自定义字体示例
+      function openPanelWithCustomFonts() {
+        pypjs.setConfig({
+          amountAlign: 'center',
+          amountFont: 'Georgia, serif',
+          textFont: 'Verdana, sans-serif'
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // 语言示例
+      function openPanelWithLanguage(lang) {
+        pypjs.setConfig({
+          language: lang
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 自定义多语言示例（部分覆盖）
+      function openPanelWithCustomI18n() {
+        pypjs.setConfig({
+          language: 'zh',
+          i18n: {
+            headerTitle: '💳 支付',
+            confirmButton: '立即支付',
+            cancelButton: '稍后再说'
+            // 其他文本会使用中文默认翻译
+          }
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
       }
     </script>
   </body>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payment Panel Component Examples</title>
+    <title>PYPJS Examples</title>
     <style>
       * {
         margin: 0;
@@ -217,7 +217,7 @@
       <div class="demo-section">
         <h2>Custom Theme</h2>
         <button class="btn" onclick="openPanelWithRedTheme()">
-          Open Payment Panel (Red Theme)
+          Open Payment Panel (Gradient Theme)
         </button>
         <div class="info">
           Use setTheme() to customize theme colors:<br />
@@ -258,6 +258,87 @@
           customize the empty state text via setConfig() or setEmptyStateText().
         </div>
       </div>
+
+      <!-- Allow Confirm Without Methods -->
+      <div class="demo-section">
+        <h2>Allow Confirm Without Payment Methods</h2>
+        <button class="btn" onclick="openPanelAllowConfirmWithoutMethods(true)">
+          Allow Confirm (Default)
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelAllowConfirmWithoutMethods(false)">
+          Disallow Confirm
+        </button>
+        <div class="info">
+          Control whether to show password input/keyboard and confirm buttons when no payment methods are available.<br />
+          • allowConfirmWithoutMethods: true (default) - Show password input and confirm buttons normally<br />
+          • allowConfirmWithoutMethods: false - Hide password input and confirm buttons, prevent payment confirmation event
+        </div>
+      </div>
+
+      <!-- Hide Payment Methods -->
+      <div class="demo-section">
+        <h2>Hide Payment Methods Section</h2>
+        <button class="btn" onclick="openPanelHidePaymentMethods(true, false)">
+          Hide Payment Methods (with Confirm Button)
+        </button>
+        <button class="btn" onclick="openPanelHidePaymentMethods(true, true)">
+          Hide Payment Methods (with Password Input)
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelHidePaymentMethods(false, false)">
+          Show Payment Methods (Default)
+        </button>
+        <div class="info">
+          Control whether to hide the payment methods section, only show amount and confirm button/password input.<br />
+          • hidePaymentMethods: true - Hide payment methods section, only show amount and confirm button/password input<br />
+          • hidePaymentMethods: false (default) - Show payment methods section normally
+        </div>
+      </div>
+
+      <!-- Amount Alignment and Fonts -->
+      <div class="demo-section">
+        <h2>Amount Alignment and Fonts</h2>
+        <button class="btn" onclick="openPanelWithAmountAlign('left')">
+          Amount Left Aligned (Default)
+        </button>
+        <button class="btn" onclick="openPanelWithAmountAlign('center')">
+          Amount Center Aligned
+        </button>
+        <button class="btn" onclick="openPanelWithAmountAlign('right')">
+          Amount Right Aligned
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelWithCustomFonts()">
+          Custom Fonts
+        </button>
+        <div class="info">
+          Control amount alignment and fonts:<br />
+          • amountAlign: 'left' | 'center' | 'right' (default: 'left') - Amount text alignment<br />
+          • amountFont: string - Font family for amount value, e.g. "Arial, sans-serif"<br />
+          • textFont: string - Font family for other text elements, e.g. "Helvetica, sans-serif"
+        </div>
+      </div>
+
+      <!-- Language and Custom i18n -->
+      <div class="demo-section">
+        <h2>Language and Custom i18n</h2>
+        <button class="btn" onclick="openPanelWithLanguage('zh')">
+          Chinese (中文)
+        </button>
+        <button class="btn" onclick="openPanelWithLanguage('ja')">
+          Japanese (日本語)
+        </button>
+        <button class="btn" onclick="openPanelWithLanguage('ru')">
+          Russian (Русский)
+        </button>
+        <button class="btn btn-secondary" onclick="openPanelWithCustomI18n()">
+          Custom i18n (Partial Override)
+        </button>
+        <div class="info">
+          Control language and custom i18n texts:<br />
+          • language: 'zh' | 'en' | 'ja' | 'ru' (default: 'en') - Set language for all texts<br />
+          • i18n: Partial&lt;I18nTexts&gt; - Custom i18n texts to override defaults, partial override supported<br />
+          • Only set the fields you want to customize, others will use default translations
+        </div>
+      </div>
     </div>
 
     <!-- Include the bundled component -->
@@ -267,6 +348,7 @@
       // Event handlers
       const eventConfirmHandler = (e) => {
         pypjs.close()
+        console.log(e.detail)
         const { method, amount, password, methodData } = e.detail
         const info = document.getElementById('eventInfo')
         let message = `Payment confirmed: Method=${method}, Amount=¥${amount}`
@@ -554,6 +636,79 @@
 
         pypjs.on('payment-confirm', eventConfirmHandler)
         pypjs.open(99.99)
+      }
+
+      // Allow confirm without payment methods example
+      function openPanelAllowConfirmWithoutMethods(allow) {
+        pypjs.setConfig({
+          allowConfirmWithoutMethods: allow,
+          enablePassword: true,
+          emptyStateText: 'No payment methods available'
+        })
+
+        pypjs.setPaymentMethods([])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // Hide payment methods example
+      function openPanelHidePaymentMethods(hide, enablePassword) {
+        pypjs.setConfig({
+          hidePaymentMethods: hide,
+          enablePassword: enablePassword || false
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // Amount alignment example
+      function openPanelWithAmountAlign(align) {
+        pypjs.setConfig({
+          amountAlign: align
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // Custom fonts example
+      function openPanelWithCustomFonts() {
+        pypjs.setConfig({
+          amountAlign: 'center',
+          amountFont: 'Georgia, serif',
+          textFont: 'Verdana, sans-serif'
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // Language example
+      function openPanelWithLanguage(lang) {
+        pypjs.setConfig({
+          language: lang
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // Custom i18n example (partial override)
+      function openPanelWithCustomI18n() {
+        pypjs.setConfig({
+          language: 'en',
+          i18n: {
+            headerTitle: '💳 Payment',
+            confirmButton: 'Pay Now',
+            cancelButton: 'Maybe Later'
+            // Other texts will use English defaults
+          }
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
       }
     </script>
   </body>

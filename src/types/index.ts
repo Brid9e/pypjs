@@ -1,96 +1,133 @@
 /**
- * 支付方式接口
- * 定义支付方式的数据结构，支持二级分组
+ * Payment method interface
+ * Defines the data structure for payment methods, supports two-level grouping
  * @author Brid9e
  */
 export interface PaymentMethod {
-  /** 允许任意字段 */
+  /** Allows any field */
   [key: string]: any
-  /** 必须有一个唯一标识 */
+  /** Must have a unique identifier */
   value: string | number
-  /** 子支付方式列表，用于二级分组 */
+  /** Child payment methods list, used for two-level grouping */
   children?: PaymentMethod[]
 }
 
 /**
- * 字段映射配置
- * 用于自定义支付方式数据的字段名映射
+ * Field mapping configuration
+ * Used for custom field name mapping of payment method data
  * @author Brid9e
  */
 export interface FieldMapping {
-  /** 标题字段名，默认 'title' 或 'name' */
+  /** Title field name, default 'title' or 'name' */
   titleField?: string
-  /** 副标题字段名，默认 'subtitle' 或 'desc' 或 'description' */
+  /** Subtitle field name, default 'subtitle' or 'desc' or 'description' */
   subtitleField?: string
-  /** 图标字段名，默认 'icon' */
+  /** Icon field name, default 'icon' */
   iconField?: string
-  /** 值字段名，默认 'value' 或 'id' */
+  /** Value field name, default 'value' or 'id' */
   valueField?: string
 }
 
 /**
- * 主题配置
- * 定义支付面板的主题配色方案
+ * Theme configuration
+ * Defines the theme color scheme for payment panel
  * @author Brid9e
  */
 export interface ThemeConfig {
-  /** 主色调（用于按钮、选中状态等），默认 "#238636" */
+  /** Primary color (for buttons, selected state, etc.), default "#238636" */
   primaryColor?: string
-  /** 主色调悬停色，默认 "#2ea043" */
+  /** Primary hover color, default "#2ea043" */
   primaryHoverColor?: string
-  /** 遮罩层颜色，默认 "rgba(0, 0, 0, 0.5)" */
+  /** Overlay color, default "rgba(0, 0, 0, 0.5)" */
   overlayColor?: string
-  /** 浅色模式下面板背景色，默认 "#ffffff"，支持渐变 */
+  /** Panel background color in light mode, default "#ffffff", supports gradients */
   panelBgLight?: string
-  /** 深色模式下面板背景色，默认 "#2d2d2d"，支持渐变 */
+  /** Panel background color in dark mode, default "#2d2d2d", supports gradients */
   panelBgDark?: string
-  /** 浅色模式下主文本色，默认 "#24292f" */
+  /** Primary text color in light mode, default "#24292f" */
   textPrimaryLight?: string
-  /** 深色模式下主文本色，默认 "#e0e0e0" */
+  /** Primary text color in dark mode, default "#e0e0e0" */
   textPrimaryDark?: string
-  /** 浅色模式下次要文本色，默认 "#57606a" */
+  /** Secondary text color in light mode, default "#57606a" */
   textSecondaryLight?: string
-  /** 深色模式下次要文本色，默认 "#999999" */
+  /** Secondary text color in dark mode, default "#999999" */
   textSecondaryDark?: string
 }
 
 /**
- * 支付面板配置
- * 定义支付面板的所有可配置项
+ * I18n texts interface
+ * Defines the structure for internationalization texts
+ * @author Brid9e
+ */
+export interface I18nTexts {
+  headerTitle: string
+  amountLabel: string
+  paymentMethodsTitle: string
+  passwordLabel: string
+  cancelButton: string
+  confirmButton: string
+  emptyStateText: string
+  closeAriaLabel: string
+}
+
+/**
+ * Payment panel configuration
+ * Defines all configurable options for payment panel
  * @author Brid9e
  */
 export interface PaymentPanelConfig {
-  /** 是否允许下拉关闭，默认 true */
+  /** Whether to allow swipe to close, default true */
   allowSwipeToClose?: boolean
-  /** 关闭距离阈值（像素），默认 100px */
+  /** Close distance threshold (pixels), default 100px */
   closeThreshold?: number
-  /** 关闭距离阈值（百分比 0-1），默认 0.3 */
+  /** Close distance threshold (percentage 0-1), default 0.3 */
   closeThresholdPercent?: number
-  /** 速度阈值（像素/毫秒），默认 0.5 */
+  /** Velocity threshold (pixels/ms), default 0.5 */
   velocityThreshold?: number
 
-  /** 点击遮罩层是否关闭，默认 true */
+  /** Whether clicking overlay closes panel, default true */
   closeOnOverlayClick?: boolean
 
-  /** 是否启用密码输入，默认 false */
+  /** Whether to enable password input, default false */
   enablePassword?: boolean
-  /** 密码位数，默认 6 */
+  /** Password length, default 6 */
   passwordLength?: number
 
-  /** 标题文本，默认 "支付" */
+  /** Header title text, default "Payment" */
   headerTitle?: string
-  /** 金额标签文本，默认 "支付金额" */
+  /** Amount label text, default "Payment Amount" */
   amountLabel?: string
 
-  /** 图标显示模式，默认 "always" */
+  /** Icon display mode, default "always" */
   iconDisplay?: 'always' | 'never' | 'auto'
 
-  /** 空状态文本，当支付方式为空时显示，默认 "No payment methods available" */
+  /** Empty state text displayed when payment methods are empty, default "No payment methods available" */
   emptyStateText?: string
 
-  /** 输入完密码或点击提交后是否自动关闭面板，默认 false */
+  /** Whether to automatically close panel after password input completes or submit button is clicked, default false */
   autoCloseOnConfirm?: boolean
 
-  /** 主题配置 */
+  /** Whether to allow password input and confirm buttons when no payment methods are available, default true */
+  allowConfirmWithoutMethods?: boolean
+
+  /** Whether to hide payment methods section, only show amount and confirm button/password input, default false */
+  hidePaymentMethods?: boolean
+
+  /** Amount alignment, default "left" */
+  amountAlign?: 'left' | 'center' | 'right'
+
+  /** Amount font family, e.g. "Arial, sans-serif" */
+  amountFont?: string
+
+  /** Text font family for other text elements, e.g. "Arial, sans-serif" */
+  textFont?: string
+
+  /** Language code for i18n, default "en" */
+  language?: 'zh' | 'en' | 'ja' | 'ru'
+
+  /** Custom i18n texts to override default translations, partial override supported */
+  i18n?: Partial<I18nTexts>
+
+  /** Theme configuration */
   theme?: ThemeConfig
 }

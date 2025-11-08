@@ -1,40 +1,40 @@
 import PaymentPanel from './payment-panel'
 import type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
 
-// 确保自定义元素已注册
+// Ensure custom element is registered
 if (typeof window !== 'undefined' && !customElements.get('payment-panel')) {
   customElements.define('payment-panel', PaymentPanel)
 }
 
-// 全局注册（可选）
+// Global registration (optional)
 declare global {
   interface HTMLElementTagNameMap {
     'payment-panel': PaymentPanel
   }
 }
 
-// 全局单例实例
+// Global singleton instance
 let globalInstance: PaymentPanel | null = null
 
 /**
- * 获取或创建全局实例
- * 返回支付面板的全局单例实例
- * @returns {PaymentPanel} 支付面板实例
+ * Get or create global instance
+ * Returns the global singleton instance of payment panel
+ * @returns {PaymentPanel} Payment panel instance
  * @author Brid9e
  */
 function getInstance(): PaymentPanel {
   if (!globalInstance) {
-    // 确保自定义元素已注册
+    // Ensure custom element is registered
     if (typeof window !== 'undefined' && !customElements.get('payment-panel')) {
       customElements.define('payment-panel', PaymentPanel)
     }
 
-    // 确保 DOM 已准备好
+    // Ensure DOM is ready
     if (document.body) {
       globalInstance = document.createElement('payment-panel') as PaymentPanel
       document.body.appendChild(globalInstance)
     } else {
-      // 如果 body 还没准备好，等待 DOMContentLoaded
+      // If body is not ready, wait for DOMContentLoaded
       throw new Error('PaymentPanel: document.body is not ready. Please wait for DOMContentLoaded.')
     }
   }
@@ -42,14 +42,14 @@ function getInstance(): PaymentPanel {
 }
 
 /**
- * 全局API
- * 提供支付面板的全局访问接口
+ * Global API
+ * Provides global access interface for payment panel
  * @author Brid9e
  */
 const PaymentPanelAPI = {
   /**
-   * 打开支付面板
-   * @param {number} [amount] - 支付金额，可选
+   * Open payment panel
+   * @param {number} [amount] - Payment amount, optional
    * @author Brid9e
    */
   open(amount?: number) {
@@ -57,7 +57,7 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 关闭支付面板
+   * Close payment panel
    * @author Brid9e
    */
   close() {
@@ -65,8 +65,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置金额
-   * @param {number} amount - 支付金额
+   * Set amount
+   * @param {number} amount - Payment amount
    * @author Brid9e
    */
   setAmount(amount: number) {
@@ -74,9 +74,9 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置支付方式列表
-   * @param {PaymentMethod[]} [methods] - 支付方式列表，如果为空则使用默认列表
-   * @param {FieldMapping} [fieldMapping] - 字段映射配置，用于自定义字段名
+   * Set payment methods list
+   * @param {PaymentMethod[]} [methods] - Payment methods list, uses default list if empty
+   * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
    * @author Brid9e
    */
   setPaymentMethods(methods?: PaymentMethod[], fieldMapping?: FieldMapping) {
@@ -84,8 +84,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 获取选中的支付方式
-   * @returns {PaymentMethod | null} 当前选中的支付方式，如果未选中则返回 null
+   * Get selected payment method
+   * @returns {PaymentMethod | null} Currently selected payment method, returns null if none selected
    * @author Brid9e
    */
   getSelectedMethod(): PaymentMethod | null {
@@ -93,8 +93,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置关闭阈值（像素）
-   * @param {number} threshold - 关闭阈值（像素）
+   * Set close threshold (pixels)
+   * @param {number} threshold - Close threshold (pixels)
    * @author Brid9e
    */
   setCloseThreshold(threshold: number) {
@@ -102,8 +102,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置关闭阈值（百分比）
-   * @param {number} percent - 关闭阈值（0-1之间）
+   * Set close threshold (percentage)
+   * @param {number} percent - Close threshold (0-1)
    * @author Brid9e
    */
   setCloseThresholdPercent(percent: number) {
@@ -111,8 +111,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置速度阈值（像素/毫秒）
-   * @param {number} threshold - 速度阈值（像素/毫秒）
+   * Set velocity threshold (pixels/ms)
+   * @param {number} threshold - Velocity threshold (pixels/ms)
    * @author Brid9e
    */
   setVelocityThreshold(threshold: number) {
@@ -120,8 +120,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置点击遮罩层是否关闭
-   * @param {boolean} close - 是否允许点击遮罩层关闭
+   * Set whether clicking overlay closes panel
+   * @param {boolean} close - Whether to allow closing by clicking overlay
    * @author Brid9e
    */
   setCloseOnOverlayClick(close: boolean) {
@@ -129,8 +129,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置是否启用密码输入
-   * @param {boolean} enable - 是否启用密码输入
+   * Set whether to enable password input
+   * @param {boolean} enable - Whether to enable password input
    * @author Brid9e
    */
   setEnablePassword(enable: boolean) {
@@ -138,8 +138,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置密码位数
-   * @param {number} length - 密码位数（4-12）
+   * Set password length
+   * @param {number} length - Password length (4-12)
    * @author Brid9e
    */
   setPasswordLength(length: number) {
@@ -147,8 +147,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 统一配置方法
-   * @param {PaymentPanelConfig} config - 配置对象
+   * Unified configuration method
+   * @param {PaymentPanelConfig} config - Configuration object
    * @author Brid9e
    */
   setConfig(config: PaymentPanelConfig) {
@@ -156,26 +156,26 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 设置标题
-   * @param {string} title - 标题文本
+   * Set header title (optional, defaults to i18n text based on language)
+   * @param {string} [title] - Title text, if not provided will use i18n text
    * @author Brid9e
    */
-  setHeaderTitle(title: string) {
+  setHeaderTitle(title?: string) {
     getInstance().setHeaderTitle(title)
   },
 
   /**
-   * 设置金额标签
-   * @param {string} label - 金额标签文本
+   * Set amount label (optional, defaults to i18n text based on language)
+   * @param {string} [label] - Amount label text, if not provided will use i18n text
    * @author Brid9e
    */
-  setAmountLabel(label: string) {
+  setAmountLabel(label?: string) {
     getInstance().setAmountLabel(label)
   },
 
   /**
-   * 设置主题
-   * @param {PaymentPanelConfig['theme']} theme - 主题配置对象
+   * Set theme
+   * @param {PaymentPanelConfig['theme']} theme - Theme configuration object
    * @author Brid9e
    */
   setTheme(theme: PaymentPanelConfig['theme']) {
@@ -183,8 +183,8 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 获取当前主题
-   * @returns {PaymentPanelConfig['theme']} 当前主题配置对象
+   * Get current theme
+   * @returns {PaymentPanelConfig['theme']} Current theme configuration object
    * @author Brid9e
    */
   getTheme(): PaymentPanelConfig['theme'] {
@@ -192,7 +192,7 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 重置为默认配置
+   * Reset to default configuration
    * @author Brid9e
    */
   resetConfig() {
@@ -200,23 +200,102 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 监听事件（自动去重，同一个handler只会添加一次）
-   * @param {'payment-confirm' | 'payment-close'} event - 事件名称
-   * @param {(e: CustomEvent) => void} handler - 事件处理函数
+   * Set whether to allow confirm without payment methods
+   * Sets whether to allow password input and confirm buttons when no payment methods are available
+   * @param {boolean} allow - Whether to allow confirm without payment methods
+   * @author Brid9e
+   */
+  setAllowConfirmWithoutMethods(allow: boolean) {
+    getInstance().setAllowConfirmWithoutMethods(allow)
+  },
+
+  /**
+   * Set whether to hide payment methods section
+   * Sets whether to hide payment methods section, only show amount and confirm button/password input
+   * @param {boolean} hide - Whether to hide payment methods section
+   * @author Brid9e
+   */
+  setHidePaymentMethods(hide: boolean) {
+    getInstance().setHidePaymentMethods(hide)
+  },
+
+  /**
+   * Set amount alignment
+   * Sets the text alignment for amount section
+   * @param {'left' | 'center' | 'right'} align - Alignment direction
+   * @author Brid9e
+   */
+  setAmountAlign(align: 'left' | 'center' | 'right') {
+    getInstance().setAmountAlign(align)
+  },
+
+  /**
+   * Set amount font
+   * Sets the font family for amount value
+   * @param {string} font - Font family string, e.g. "Arial, sans-serif"
+   * @author Brid9e
+   */
+  setAmountFont(font: string) {
+    getInstance().setAmountFont(font)
+  },
+
+  /**
+   * Set text font
+   * Sets the font family for other text elements
+   * @param {string} font - Font family string, e.g. "Arial, sans-serif"
+   * @author Brid9e
+   */
+  setTextFont(font: string) {
+    getInstance().setTextFont(font)
+  },
+
+  /**
+   * Set language
+   * Sets the language for i18n texts
+   * @param {'zh' | 'en' | 'ja' | 'ru'} lang - Language code
+   * @author Brid9e
+   */
+  setLanguage(lang: 'zh' | 'en' | 'ja' | 'ru') {
+    getInstance().setLanguage(lang)
+  },
+
+  /**
+   * Set custom i18n texts
+   * Sets custom i18n texts to override default translations, partial override supported
+   * @param {Partial<{headerTitle: string, amountLabel: string, paymentMethodsTitle: string, passwordLabel: string, cancelButton: string, confirmButton: string, emptyStateText: string, closeAriaLabel: string}>} i18n - Custom i18n texts object
+   * @author Brid9e
+   */
+  setI18n(i18n: Partial<{
+    headerTitle: string
+    amountLabel: string
+    paymentMethodsTitle: string
+    passwordLabel: string
+    cancelButton: string
+    confirmButton: string
+    emptyStateText: string
+    closeAriaLabel: string
+  }>) {
+    getInstance().setI18n(i18n)
+  },
+
+  /**
+   * Listen to events (auto-deduplication, same handler will only be added once)
+   * @param {'payment-confirm' | 'payment-close'} event - Event name
+   * @param {(e: CustomEvent) => void} handler - Event handler function
    * @author Brid9e
    */
   on(event: 'payment-confirm' | 'payment-close', handler: (e: CustomEvent) => void) {
     const instance = getInstance()
-    // 先移除，避免重复添加
+    // Remove first to avoid duplicate addition
     instance.removeEventListener(event, handler as EventListener)
-    // 再添加
+    // Then add
     instance.addEventListener(event, handler as EventListener)
   },
 
   /**
-   * 移除事件监听
-   * @param {'payment-confirm' | 'payment-close'} event - 事件名称
-   * @param {(e: CustomEvent) => void} handler - 事件处理函数
+   * Remove event listener
+   * @param {'payment-confirm' | 'payment-close'} event - Event name
+   * @param {(e: CustomEvent) => void} handler - Event handler function
    * @author Brid9e
    */
   off(event: 'payment-confirm' | 'payment-close', handler: (e: CustomEvent) => void) {
@@ -224,24 +303,24 @@ const PaymentPanelAPI = {
   },
 
   /**
-   * 移除所有事件监听
-   * @param {'payment-confirm' | 'payment-close'} [event] - 事件名称，如果未指定则移除所有事件监听
+   * Remove all event listeners
+   * @param {'payment-confirm' | 'payment-close'} [event] - Event name, if not specified removes all event listeners
    * @author Brid9e
    */
   removeAllListeners(event?: 'payment-confirm' | 'payment-close') {
     const instance = getInstance()
     if (event) {
-      // 克隆元素以移除所有监听器（简单方法）
+      // Clone element to remove all listeners (simple method)
       const newElement = instance.cloneNode(true) as PaymentPanel
       if (instance.parentNode) {
         instance.parentNode.replaceChild(newElement, instance)
-        // 重新初始化
+        // Re-initialize
         if (globalInstance === instance) {
           globalInstance = newElement
         }
       }
     } else {
-      // 移除所有事件监听
+      // Remove all event listeners
       const newElement = instance.cloneNode(true) as PaymentPanel
       if (instance.parentNode) {
         instance.parentNode.replaceChild(newElement, instance)
@@ -253,12 +332,12 @@ const PaymentPanelAPI = {
   }
 }
 
-// 挂载到全局
+// Mount to global
 if (typeof window !== 'undefined') {
   (window as any).pypjs = PaymentPanelAPI
 }
 
-// 导出
+// Export
 export { PaymentPanelAPI }
 export type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
 export default PaymentPanelAPI
