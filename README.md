@@ -4,7 +4,29 @@ A simple and easy-to-use payment panel component.
 
 ## Usage
 
-### 1. Include the Component
+### 1. Installation
+
+```bash
+npm install pypjs
+# or
+pnpm add pypjs
+# or
+yarn add pypjs
+```
+
+### 2. Import the Component
+
+#### In Vue/React/Modern Projects (ES Module)
+
+```javascript
+import pypjs from 'pypjs'
+
+// Use the component
+pypjs.open(99.99)
+pypjs.setConfig({ headerTitle: 'Payment' })
+```
+
+#### In Browser (Script Tag)
 
 ```html
 <script src="./dist/index.js"></script>
@@ -12,7 +34,7 @@ A simple and easy-to-use payment panel component.
 
 After including, the global `pypjs` object is available for use.
 
-### 2. Open Payment Panel
+### 3. Open Payment Panel
 
 ```javascript
 // Basic usage
@@ -22,19 +44,19 @@ pypjs.open();
 pypjs.open(99.99);
 ```
 
-### 3. Close Payment Panel
+### 4. Close Payment Panel
 
 ```javascript
 pypjs.close();
 ```
 
-### 4. Set Amount
+### 5. Set Amount
 
 ```javascript
 pypjs.setAmount(199.00);
 ```
 
-### 5. Custom Payment Methods
+### 6. Custom Payment Methods
 
 #### Basic Usage
 
@@ -108,7 +130,7 @@ Supports three icon types:
    { name: 'Bank Card' } // no icon field
    ```
 
-### 6. Unified Configuration
+### 7. Unified Configuration
 
 ```javascript
 // Use setConfig to configure all options
@@ -137,7 +159,7 @@ pypjs.setConfig({
 
 **Note**: In `setConfig`, if a configuration item is not provided (undefined), it will automatically revert to the default value. This prevents configuration conflicts between team members.
 
-### 7. Individual Configuration Methods
+### 8. Individual Configuration Methods
 
 ```javascript
 // Set title
@@ -170,7 +192,7 @@ pypjs.setTheme({
 pypjs.resetConfig();
 ```
 
-### 8. Event Listeners
+### 9. Event Listeners
 
 ```javascript
 // Listen to payment confirm event

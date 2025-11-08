@@ -4,7 +4,29 @@
 
 ## 使用方法
 
-### 1. 引入组件
+### 1. 安装
+
+```bash
+npm install pypjs
+# 或
+pnpm add pypjs
+# 或
+yarn add pypjs
+```
+
+### 2. 引入组件
+
+#### 在 Vue/React/现代项目中使用（ES Module）
+
+```javascript
+import pypjs from 'pypjs'
+
+// 使用组件
+pypjs.open(99.99)
+pypjs.setConfig({ headerTitle: '支付' })
+```
+
+#### 在浏览器中使用（Script 标签）
 
 ```html
 <script src="./dist/index.js"></script>
@@ -12,7 +34,7 @@
 
 引入后会自动初始化，全局对象 `pypjs` 可直接使用。
 
-### 2. 打开支付面板
+### 3. 打开支付面板
 
 ```javascript
 // 基础打开
@@ -22,19 +44,19 @@ pypjs.open();
 pypjs.open(99.99);
 ```
 
-### 3. 关闭支付面板
+### 4. 关闭支付面板
 
 ```javascript
 pypjs.close();
 ```
 
-### 4. 设置金额
+### 5. 设置金额
 
 ```javascript
 pypjs.setAmount(199.00);
 ```
 
-### 5. 自定义支付方式
+### 6. 自定义支付方式
 
 #### 基础用法
 
@@ -108,7 +130,7 @@ pypjs.setPaymentMethods(
    { name: '银行卡' } // 没有 icon 字段
    ```
 
-### 6. 统一配置
+### 7. 统一配置
 
 ```javascript
 // 使用 setConfig 方法统一配置所有选项
@@ -137,7 +159,7 @@ pypjs.setConfig({
 
 **注意**：`setConfig` 方法中，如果某个配置项没有传入（undefined），会自动恢复为默认值。这样可以防止团队成员之间的配置互相影响。
 
-### 7. 单独设置配置项
+### 8. 单独设置配置项
 
 ```javascript
 // 设置标题
@@ -170,7 +192,7 @@ pypjs.setTheme({
 pypjs.resetConfig();
 ```
 
-### 8. 监听事件
+### 9. 监听事件
 
 ```javascript
 // 监听支付确认事件
