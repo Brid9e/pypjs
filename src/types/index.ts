@@ -85,6 +85,12 @@ export interface PaymentPanelConfig {
   /** 图标显示模式，默认 "always" */
   iconDisplay?: 'always' | 'never' | 'auto'
 
+  /** 空状态文本，当支付方式为空时显示，默认 "No payment methods available" */
+  emptyStateText?: string
+
+  /** 输入完密码或点击提交后是否自动关闭面板，默认 false */
+  autoCloseOnConfirm?: boolean
+
   /** 主题配置 */
   theme?: ThemeConfig
 }

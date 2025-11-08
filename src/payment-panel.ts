@@ -13,9 +13,11 @@ const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme'>> = {
   closeOnOverlayClick: true,
   enablePassword: false,
   passwordLength: 6,
-  headerTitle: '支付',
-  amountLabel: '支付金额',
-  iconDisplay: 'always'
+  headerTitle: 'Payment',
+  amountLabel: 'Payment Amount',
+  iconDisplay: 'always',
+  emptyStateText: 'No payment methods available',
+  autoCloseOnConfirm: false
 }
 
 /**
@@ -50,6 +52,8 @@ class PaymentPanel extends HTMLElement {
   private headerTitle: string = DEFAULT_CONFIG.headerTitle
   private amountLabel: string = DEFAULT_CONFIG.amountLabel
   private iconDisplay: 'always' | 'never' | 'auto' = DEFAULT_CONFIG.iconDisplay
+  private emptyStateText: string = DEFAULT_CONFIG.emptyStateText
+  private autoCloseOnConfirm: boolean = DEFAULT_CONFIG.autoCloseOnConfirm
 
   // 主题配置
   private theme: PaymentPanelConfig['theme'] = {}
@@ -58,11 +62,7 @@ class PaymentPanel extends HTMLElement {
    * 默认支付方式列表
    * @author Brid9e
    */
-  private static readonly DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
-    { value: 'wechat', title: '微信支付', subtitle: '推荐使用', icon: '💳' },
-    { value: 'alipay', title: '支付宝', subtitle: '安全便捷', icon: '💰' },
-    { value: 'card', title: '银行卡', subtitle: '支持各大银行', icon: '💵' }
-  ]
+  private static readonly DEFAULT_PAYMENT_METHODS: PaymentMethod[] = []
 
   /**
    * 默认字段映射配置
@@ -92,12 +92,10 @@ class PaymentPanel extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
     this.isOpen = false
 
-    // 使用默认支付方式
+    // 使用默认支付方式（空数组）
     this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
     this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
-    if (this.paymentMethods.length > 0) {
-      this.selectedMethod = this.paymentMethods[0]
-    }
+    this.selectedMethod = null
   }
 
   /**
@@ -489,6 +487,17 @@ class PaymentPanel extends HTMLElement {
 
         :host([data-theme="dark"]) .payment-methods-title {
           color: var(--text-primary-dark);
+        }
+
+        .payment-methods-empty {
+          text-align: center;
+          padding: 40px 20px;
+          color: var(--text-secondary-light);
+          font-size: 14px;
+        }
+
+        :host([data-theme="dark"]) .payment-methods-empty {
+          color: var(--text-secondary-dark);
         }
 
         .payment-method {
@@ -905,7 +914,7 @@ class PaymentPanel extends HTMLElement {
       </style>
       <div class="overlay"></div>
       <div class="panel">
-        <button class="panel-close-btn" id="closeBtn" aria-label="关闭">
+        <button class="panel-close-btn" id="closeBtn" aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -913,7 +922,7 @@ class PaymentPanel extends HTMLElement {
         <div class="drag-handle"></div>
         <div class="header">
           <div class="header-content">
-            <h3 class="header-title" id="headerTitle">支付</h3>
+            <h3 class="header-title" id="headerTitle">Payment</h3>
           </div>
         </div>
         <div class="content">
@@ -922,13 +931,13 @@ class PaymentPanel extends HTMLElement {
             <div class="amount-value"><span class="currency-symbol">¥</span><span id="amount">0.00</span></div>
           </div>
           <div class="payment-methods">
-            <div class="payment-methods-title">选择支付方式</div>
+            <div class="payment-methods-title">Select Payment Method</div>
             <div class="payment-methods-list-container">
               <div id="payment-methods-list"></div>
             </div>
           </div>
           <div class="password-section" id="passwordSection" style="display: none;">
-            <div class="password-label">请输入支付密码</div>
+            <div class="password-label">Please enter payment password</div>
             <div class="password-input-container">
               <div class="password-dots" id="passwordDots"></div>
             </div>
@@ -962,8 +971,8 @@ class PaymentPanel extends HTMLElement {
           </div>
         </div>
         <div class="actions" id="actions">
-          <button class="btn btn-secondary" id="cancelBtn">取消</button>
-          <button class="btn btn-primary" id="confirmBtn">确认支付</button>
+          <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="confirmBtn">Confirm Payment</button>
         </div>
       </div>
     `
@@ -1041,7 +1050,7 @@ class PaymentPanel extends HTMLElement {
 
   /**
    * 检查密码是否输入完成
-   * 当密码长度达到设定值时，触发支付确认事件并关闭面板
+   * 当密码长度达到设定值时，触发支付确认事件，根据配置决定是否关闭面板
    * @author Brid9e
    */
   private checkPasswordComplete() {
@@ -1072,7 +1081,11 @@ class PaymentPanel extends HTMLElement {
       // 重置密码
       this.currentPassword = ''
       this.renderPasswordDots()
-      this.close()
+
+      // 根据配置决定是否自动关闭
+      if (this.autoCloseOnConfirm) {
+        this.close()
+      }
     }
   }
 
@@ -1177,6 +1190,22 @@ class PaymentPanel extends HTMLElement {
   private renderPaymentMethods() {
     const container = this.shadow.querySelector('#payment-methods-list')
     if (!container) return
+
+    const titleElement = this.shadow.querySelector('.payment-methods-title') as HTMLElement
+
+    // 如果支付方式为空，显示空状态并隐藏标题
+    if (!this.paymentMethods || this.paymentMethods.length === 0) {
+      container.innerHTML = `<div class="payment-methods-empty">${this.emptyStateText}</div>`
+      if (titleElement) {
+        titleElement.style.display = 'none'
+      }
+      return
+    }
+
+    // 有支付方式时显示标题
+    if (titleElement) {
+      titleElement.style.display = ''
+    }
 
     const titleField = this.fieldMapping.titleField || 'title'
     const subtitleField = this.fieldMapping.subtitleField || 'subtitle'
@@ -1382,7 +1411,10 @@ class PaymentPanel extends HTMLElement {
             composed: true
           })
         )
-        this.close()
+        // 根据配置决定是否自动关闭
+        if (this.autoCloseOnConfirm) {
+          this.close()
+        }
       })
     }
 
@@ -1633,14 +1665,12 @@ class PaymentPanel extends HTMLElement {
   public open(amount?: number) {
     if (this.isOpen) return
 
-    // 每次打开时，如果没有设置过自定义支付方式，恢复为默认值
+    // 每次打开时，如果没有设置过自定义支付方式，恢复为默认值（空数组）
     // 这样可以防止之前设置的支付方式影响后续打开
     if (!this.hasCustomPaymentMethods) {
       this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
       this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
-      if (this.paymentMethods.length > 0) {
-        this.selectedMethod = this.paymentMethods[0]
-      }
+      this.selectedMethod = null
       this.renderPaymentMethods()
     }
     // 每次打开后，重置标记，这样下次打开时如果没有设置就会用默认值
@@ -1755,9 +1785,9 @@ class PaymentPanel extends HTMLElement {
    * @author Brid9e
    */
   public setPaymentMethods(methods?: PaymentMethod[], fieldMapping?: FieldMapping) {
-    // 如果没有传入或传入空数组，恢复为默认值
-    if (!methods || methods.length === 0) {
-      this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
+    // 如果没有传入，使用空数组；如果传入空数组，保持空数组
+    if (methods === undefined) {
+      this.paymentMethods = []
       this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
       this.hasCustomPaymentMethods = false // 标记为未设置自定义支付方式
     } else {
@@ -1769,7 +1799,20 @@ class PaymentPanel extends HTMLElement {
     this.renderPaymentMethods()
     // 重置选中状态
     if (this.paymentMethods.length > 0) {
-      this.selectedMethod = this.paymentMethods[0]
+      // 扁平化查找第一个可选项
+      const flattenMethods = (methods: PaymentMethod[]): PaymentMethod[] => {
+        const result: PaymentMethod[] = []
+        methods.forEach(method => {
+          if (method.children && method.children.length > 0) {
+            result.push(...flattenMethods(method.children))
+          } else {
+            result.push(method)
+          }
+        })
+        return result
+      }
+      const allMethods = flattenMethods(this.paymentMethods)
+      this.selectedMethod = allMethods[0] || null
     } else {
       this.selectedMethod = null
     }
@@ -1944,6 +1987,18 @@ class PaymentPanel extends HTMLElement {
       this.renderPaymentMethods()
     }
 
+    this.emptyStateText = config.emptyStateText !== undefined
+      ? (config.emptyStateText || DEFAULT_CONFIG.emptyStateText)
+      : DEFAULT_CONFIG.emptyStateText
+    // 如果修改了空状态文本，需要重新渲染支付方式列表
+    if (config.emptyStateText !== undefined) {
+      this.renderPaymentMethods()
+    }
+
+    this.autoCloseOnConfirm = config.autoCloseOnConfirm !== undefined
+      ? config.autoCloseOnConfirm
+      : DEFAULT_CONFIG.autoCloseOnConfirm
+
     // 设置主题
     if (config.theme !== undefined) {
       // setTheme 方法会自动处理空对象，重置为默认值
@@ -1988,7 +2043,7 @@ class PaymentPanel extends HTMLElement {
    * @author Brid9e
    */
   public setHeaderTitle(title: string) {
-    this.headerTitle = title || '支付'
+    this.headerTitle = title || 'Payment'
     this.updateHeaderTitle()
   }
 
@@ -2011,8 +2066,29 @@ class PaymentPanel extends HTMLElement {
    * @author Brid9e
    */
   public setAmountLabel(label: string) {
-    this.amountLabel = label || '支付金额'
+    this.amountLabel = label || 'Payment Amount'
     this.updateAmountLabel()
+  }
+
+  /**
+   * 设置空状态文本
+   * 设置当支付方式为空时显示的文本
+   * @param {string} text - 空状态文本
+   * @author Brid9e
+   */
+  public setEmptyStateText(text: string) {
+    this.emptyStateText = text || 'No payment methods available'
+    this.renderPaymentMethods()
+  }
+
+  /**
+   * 设置是否自动关闭
+   * 设置输入完密码或点击提交后是否自动关闭面板
+   * @param {boolean} autoClose - 是否自动关闭
+   * @author Brid9e
+   */
+  public setAutoCloseOnConfirm(autoClose: boolean) {
+    this.autoCloseOnConfirm = autoClose
   }
 
   /**

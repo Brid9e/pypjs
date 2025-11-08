@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>支付面板组件示例</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+          Helvetica, Arial, sans-serif;
+        padding: 20px;
+        background-color: #f6f8fa;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #24292f;
+      }
+
+      .demo-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-section h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        color: #24292f;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        background-color: #238636;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 12px;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn:hover {
+        background-color: #2ea043;
+      }
+
+      .btn-secondary {
+        background-color: #f6f8fa;
+        color: #24292f;
+      }
+
+      .btn-secondary:hover {
+        background-color: #f3f4f6;
+      }
+
+      .info {
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #57606a;
+        line-height: 1.6;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0d1117;
+        }
+
+        h1 {
+          color: #e6edf3;
+        }
+
+        .demo-section {
+          background: #161b22;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-section h2 {
+          color: #e6edf3;
+        }
+
+        .btn-secondary {
+          background-color: #21262d;
+          color: #e6edf3;
+        }
+
+        .btn-secondary:hover {
+          background-color: #30363d;
+        }
+
+        .info {
+          background-color: #21262d;
+          color: #8b949e;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>支付面板组件示例</h1>
+
+      <!-- Basic Usage -->
+      <div class="demo-section">
+        <h2>基础用法</h2>
+        <button class="btn" onclick="openBasicPanel()">
+          打开支付面板
+        </button>
+        <div class="info" id="eventInfo">
+          事件信息将显示在这里
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="demo-section">
+        <h2>配置：禁用拖拽 + 密码输入</h2>
+        <button class="btn" onclick="openPanelWithConfig()">
+          打开支付面板
+        </button>
+        <div class="info">
+          使用 setConfig() 配置所有选项：<br />
+          • allowSwipeToClose: 是否允许下拉关闭（false时隐藏拖动滑块）<br />
+          • closeOnOverlayClick: 点击遮罩层是否关闭<br />
+          • enablePassword: 是否启用密码输入<br />
+          • passwordLength: 密码位数（默认6位）<br />
+          • headerTitle: 标题文本<br />
+          • closeThreshold: 关闭距离阈值（像素）<br />
+          • closeThresholdPercent: 关闭距离阈值（百分比）<br />
+          • velocityThreshold: 速度阈值（像素/毫秒）
+        </div>
+      </div>
+
+      <!-- Custom Payment Methods -->
+      <div class="demo-section">
+        <h2>自定义支付方式 + 二级分组</h2>
+        <button class="btn" onclick="openPanelWithCustomMethods()">
+          打开支付面板
+        </button>
+        <div class="info">
+          支持自定义支付方式列表，支持二级分组结构。点击分组标题可展开/折叠子项。
+        </div>
+      </div>
+
+      <!-- Icon Display Modes -->
+      <div class="demo-section">
+        <h2>图标显示模式：always（默认）</h2>
+        <button class="btn" onclick="openPanelWithAlwaysMode()">
+          总是显示图标
+        </button>
+        <div class="info">
+          使用 iconDisplay: 'always'，图标区域总是显示<br />
+          • 图片URL：显示图片（object-fit: cover）<br />
+          • 字符串：显示第一个字符<br />
+          • 无图标：显示默认SVG图标
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>图标显示模式：auto</h2>
+        <button class="btn" onclick="openPanelWithAutoMode()">
+          有icon时显示
+        </button>
+        <div class="info">
+          使用 iconDisplay: 'auto'，只有当存在 icon 值时才显示图标区域<br />
+          • 有icon值：正常显示（图片/字符串/默认图标）<br />
+          • 无icon值：隐藏图标区域
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>图标显示模式：never</h2>
+        <button class="btn" onclick="openPanelWithNeverMode()">
+          不显示图标
+        </button>
+        <div class="info">
+          使用 iconDisplay: 'never'，图标区域从不显示
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>混合图标：图片URL + 字符串 + 无图标</h2>
+        <button class="btn btn-secondary" onclick="openPanelWithMixedIcons()">
+          打开混合图标示例
+        </button>
+        <div class="info">
+          显示不同类型的图标：<br />
+          • 图片URL（微信支付、支付宝图标）<br />
+          • 字符串（显示第一个字符）<br />
+          • 无图标（显示默认SVG）
+        </div>
+      </div>
+
+      <!-- Custom Theme -->
+      <div class="demo-section">
+        <h2>自定义主题</h2>
+        <button class="btn" onclick="openPanelWithRedTheme()">
+          打开支付面板（红色主题）
+        </button>
+        <div class="info">
+          使用 setTheme() 自定义主题颜色：<br />
+          • primaryColor: 主色调（用于按钮、选中状态等）<br />
+          • primaryHoverColor: 主色调悬停色<br />
+          • overlayColor: 遮罩层颜色<br />
+          • panelBgLight: 浅色模式下面板背景色（支持渐变）<br />
+          • panelBgDark: 深色模式下面板背景色（支持渐变）<br />
+          • textPrimaryLight: 浅色模式下主文本色<br />
+          • textPrimaryDark: 深色模式下主文本色<br />
+          • textSecondaryLight: 浅色模式下次要文本色<br />
+          • textSecondaryDark: 深色模式下次要文本色<br />
+          <br />
+          也可以在 setConfig() 中通过 theme 属性设置主题
+        </div>
+      </div>
+
+      <!-- Custom Title -->
+      <div class="demo-section">
+        <h2>自定义标题</h2>
+        <button class="btn" onclick="openPanelWithCustomTitle()">
+          打开支付面板
+        </button>
+        <div class="info">
+          使用 setConfig() 设置标题，或使用 setHeaderTitle() 方法单独设置标题
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="demo-section">
+        <h2>空状态</h2>
+        <button class="btn btn-secondary" onclick="openPanelWithEmptyState()">
+          打开空状态示例
+        </button>
+        <div class="info">
+          当支付方式为空时，显示空状态文本。可以通过 setConfig() 或 setEmptyStateText() 自定义空状态文本。
+        </div>
+      </div>
+    </div>
+
+    <!-- Include the bundled component -->
+    <script src="../dist/index.js"></script>
+
+    <script>
+      // 事件处理器
+      const eventConfirmHandler = (e) => {
+        pypjs.close()
+        const { method, amount, password, methodData } = e.detail
+        const info = document.getElementById('eventInfo')
+        let message = `支付确认: 方式=${method}, 金额=¥${amount}`
+        if (password) {
+          message += `, 密码=${password}`
+        }
+        if (info) {
+          info.textContent = message
+        }
+        console.log('\x1b[32m%s\x1b[0m', message)
+      }
+
+      const eventCloseHandler = () => {
+        console.log('支付面板已关闭')
+      }
+
+      // 基础用法
+      function openBasicPanel() {
+        pypjs.setConfig({
+          allowSwipeToClose: true,
+          closeOnOverlayClick: false,
+          enablePassword: false
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('payment-close', eventCloseHandler)
+
+        pypjs.open(99.99)
+      }
+
+      // 配置示例：禁用拖拽 + 密码输入
+      function openPanelWithConfig() {
+        pypjs.setConfig({
+          allowSwipeToClose: false,
+          closeOnOverlayClick: false,
+          enablePassword: true,
+          passwordLength: 6,
+          closeThreshold: 150,
+          closeThresholdPercent: 0.4,
+          velocityThreshold: 0.8
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 自定义支付方式 + 二级分组
+      function openPanelWithCustomMethods() {
+        pypjs.setConfig({
+          allowSwipeToClose: true,
+          closeOnOverlayClick: true,
+          enablePassword: false
+        })
+
+        pypjs.setPaymentMethods(
+          [
+            {
+              name: 'Online Payment',
+              children: [
+                { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+                {
+                  id: 2,
+                  name: 'Alipay',
+                  desc: 'Secure & Convenient',
+                  icon: '💰'
+                },
+                { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+              ]
+            },
+            {
+              name: 'Bank Card Payment',
+              children: [
+                {
+                  id: 4,
+                  name: 'Debit Card',
+                  desc: 'All Banks Supported',
+                  icon: '💵'
+                },
+                {
+                  id: 5,
+                  name: 'Credit Card',
+                  desc: 'All Banks Supported',
+                  icon: '💳'
+                }
+              ]
+            },
+            {
+              name: 'Other Payment',
+              children: [
+                { id: 6, name: 'UnionPay', desc: 'Official', icon: '☁️' },
+                { id: 7, name: 'JD Pay', desc: 'JD Users Only', icon: '🛒' },
+                {
+                  id: 8,
+                  name: 'Meituan Pay',
+                  desc: 'Meituan Users Only',
+                  icon: '🍔'
+                },
+                { id: 9, name: 'QQ Wallet', desc: 'QQ Users Only', icon: '💬' }
+              ]
+            }
+          ],
+          {
+            titleField: 'name',
+            subtitleField: 'desc',
+            iconField: 'icon',
+            valueField: 'id'
+          }
+        )
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // 图标显示模式：always
+      function openPanelWithAlwaysMode() {
+        pypjs.setConfig({
+          iconDisplay: 'always',
+          headerTitle: 'Payment Methods'
+        })
+
+        pypjs.setPaymentMethods([
+          {
+            value: 'wechat',
+            title: 'WeChat Pay',
+            subtitle: 'Recommended',
+            icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
+          },
+          {
+            value: 'alipay',
+            title: 'Alipay',
+            subtitle: 'Secure & Convenient',
+            icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
+          },
+          {
+            value: 'card',
+            title: 'Bank Card',
+            subtitle: 'All Banks Supported'
+            // No icon, shows default SVG
+          }
+        ])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 图标显示模式：auto
+      function openPanelWithAutoMode() {
+        pypjs.setConfig({
+          iconDisplay: 'auto',
+          headerTitle: 'Payment Methods'
+        })
+
+        pypjs.setPaymentMethods([
+          {
+            value: 'wechat',
+            title: 'WeChat Pay',
+            subtitle: 'Recommended',
+            icon: '💳'
+          },
+          {
+            value: 'alipay',
+            title: 'Alipay',
+            subtitle: 'Secure & Convenient',
+            icon: '💰'
+          },
+          {
+            value: 'card',
+            title: 'Bank Card',
+            subtitle: 'All Banks Supported'
+            // No icon, icon area is hidden
+          }
+        ])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 图标显示模式：never
+      function openPanelWithNeverMode() {
+        pypjs.setConfig({
+          iconDisplay: 'never',
+          headerTitle: 'Payment Methods'
+        })
+
+        pypjs.setPaymentMethods([
+          {
+            value: 'wechat',
+            title: 'WeChat Pay',
+            subtitle: 'Recommended',
+            icon: '💳'
+          },
+          {
+            value: 'alipay',
+            title: 'Alipay',
+            subtitle: 'Secure & Convenient',
+            icon: '💰'
+          },
+          {
+            value: 'card',
+            title: 'Bank Card',
+            subtitle: 'All Banks Supported'
+          }
+        ])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
+      }
+
+      // 混合图标示例
+      function openPanelWithMixedIcons() {
+        pypjs.setConfig({
+          iconDisplay: 'always',
+          headerTitle: 'Payment Methods'
+        })
+
+        pypjs.setPaymentMethods([
+          {
+            value: 'wechat',
+            title: 'WeChat Pay',
+            subtitle: 'Recommended',
+            icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
+          },
+          {
+            value: 'alipay',
+            title: 'Alipay',
+            subtitle: 'Secure & Convenient',
+            icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
+          },
+          {
+            value: 'card',
+            title: 'Bank Card',
+            subtitle: 'All Banks Supported'
+            // No icon, shows default SVG
+          },
+          {
+            value: 'apple',
+            title: 'Apple Pay',
+            subtitle: 'Fast Payment',
+            icon: '🍎'
+          }
+        ])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+
+      // 自定义主题示例
+      function openPanelWithRedTheme() {
+        pypjs.setConfig({
+          headerTitle: 'Confirm Payment',
+          theme: {
+            primaryColor: '#ff4d4f',
+            primaryHoverColor: '#ff7875',
+            overlayColor: 'rgba(0, 0, 0, 0.6)',
+            panelBgLight:
+              'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
+            panelBgDark:
+              'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
+            textPrimaryLight: '#8b2635',
+            textSecondaryLight: '#c85a5a',
+            textPrimaryDark: '#ffe0e0',
+            textSecondaryDark: '#ff9999'
+          }
+        })
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(299.99)
+      }
+      // 自定义标题示例
+      function openPanelWithCustomTitle() {
+        pypjs.setConfig({
+          headerTitle: '❤❤❤❤ Love Payment ❤❤❤❤'
+        })
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(88.88)
+      }
+
+      // 空状态示例
+      function openPanelWithEmptyState() {
+        pypjs.setConfig({
+          emptyStateText: 'No payment methods available'
+        })
+
+        pypjs.setPaymentMethods([])
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(99.99)
+      }
+    </script>
+  </body>
+</html>
