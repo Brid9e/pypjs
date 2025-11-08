@@ -1,3 +1,5 @@
+English | [简体中文](https://github.com/Brid9e/pypjs/blob/main/README-ZH.md)
+
 # pypjs
 
 A simple and easy-to-use payment panel component.
@@ -38,22 +40,22 @@ After including, the global `pypjs` object is available for use.
 
 ```javascript
 // Basic usage
-pypjs.open();
+pypjs.open()
 
 // Open with amount
-pypjs.open(99.99);
+pypjs.open(99.99)
 ```
 
 ### 4. Close Payment Panel
 
 ```javascript
-pypjs.close();
+pypjs.close()
 ```
 
 ### 5. Set Amount
 
 ```javascript
-pypjs.setAmount(199.00);
+pypjs.setAmount(199.0)
 ```
 
 ### 6. Custom Payment Methods
@@ -69,12 +71,12 @@ pypjs.setPaymentMethods(
     { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
   ],
   {
-    titleField: 'name',      // Title field name
-    subtitleField: 'desc',   // Subtitle field name
-    iconField: 'icon',       // Icon field name
-    valueField: 'id'         // Value field name
+    titleField: 'name', // Title field name
+    subtitleField: 'desc', // Subtitle field name
+    iconField: 'icon', // Icon field name
+    valueField: 'id' // Value field name
   }
-);
+)
 ```
 
 #### Two-Level Grouping
@@ -106,7 +108,7 @@ pypjs.setPaymentMethods(
     iconField: 'icon',
     valueField: 'id'
   }
-);
+)
 ```
 
 #### Icon Types
@@ -114,20 +116,32 @@ pypjs.setPaymentMethods(
 Supports three icon types:
 
 1. **Image URL**: Automatically recognizes strings starting with `http://`, `https://` or containing image extensions
+
    ```javascript
-   { icon: 'https://example.com/icon.png' }
+   {
+     icon: 'https://example.com/icon.png'
+   }
    ```
 
 2. **String**: Displays first character (emoji displays fully)
+
    ```javascript
-   { icon: '💳' }  // emoji
-   { icon: 'A' }   // single character
-   { icon: 'Alipay' } // displays first character "A"
+   {
+     icon: '💳'
+   } // emoji
+   {
+     icon: 'A'
+   } // single character
+   {
+     icon: 'Alipay'
+   } // displays first character "A"
    ```
 
 3. **No Icon**: Displays default SVG icon
    ```javascript
-   { name: 'Bank Card' } // no icon field
+   {
+     name: 'Bank Card'
+   } // no icon field
    ```
 
 ### 7. Unified Configuration
@@ -135,17 +149,18 @@ Supports three icon types:
 ```javascript
 // Use setConfig to configure all options
 pypjs.setConfig({
-  allowSwipeToClose: false,        // Allow swipe to close (hides drag handle when false)
-  closeOnOverlayClick: false,      // Close on overlay click
-  enablePassword: true,            // Enable password input
-  passwordLength: 6,               // Password length (default 6)
-  headerTitle: 'Confirm Payment',  // Header title (default "Payment")
-  amountLabel: 'Payment Amount',   // Amount label (default "Payment Amount")
-  iconDisplay: 'always',           // Icon display mode: 'always' | 'never' | 'auto' (default 'always')
-  closeThreshold: 150,             // Close distance threshold (pixels)
-  closeThresholdPercent: 0.4,      // Close distance threshold (percentage, 0-1)
-  velocityThreshold: 0.8,          // Velocity threshold (pixels/ms)
-  theme: {                         // Theme configuration
+  allowSwipeToClose: false, // Allow swipe to close (hides drag handle when false)
+  closeOnOverlayClick: false, // Close on overlay click
+  enablePassword: true, // Enable password input
+  passwordLength: 6, // Password length (default 6)
+  headerTitle: 'Confirm Payment', // Header title (default "Payment")
+  amountLabel: 'Payment Amount', // Amount label (default "Payment Amount")
+  iconDisplay: 'always', // Icon display mode: 'always' | 'never' | 'auto' (default 'always')
+  closeThreshold: 150, // Close distance threshold (pixels)
+  closeThresholdPercent: 0.4, // Close distance threshold (percentage, 0-1)
+  velocityThreshold: 0.8, // Velocity threshold (pixels/ms)
+  theme: {
+    // Theme configuration
     primaryColor: '#ff4d4f',
     primaryHoverColor: '#ff7875',
     overlayColor: 'rgba(0, 0, 0, 0.6)',
@@ -154,7 +169,7 @@ pypjs.setConfig({
     textPrimaryLight: '#24292f',
     textPrimaryDark: '#e0e0e0'
   }
-});
+})
 ```
 
 **Note**: In `setConfig`, if a configuration item is not provided (undefined), it will automatically revert to the default value. This prevents configuration conflicts between team members.
@@ -163,22 +178,22 @@ pypjs.setConfig({
 
 ```javascript
 // Set title
-pypjs.setHeaderTitle('Confirm Payment');
+pypjs.setHeaderTitle('Confirm Payment')
 
 // Set amount label
-pypjs.setAmountLabel('Payment Amount');
+pypjs.setAmountLabel('Payment Amount')
 
 // Set close thresholds
-pypjs.setCloseThreshold(150); // Set distance threshold to 150px
-pypjs.setCloseThresholdPercent(0.4); // Set distance threshold to 40% of panel height
-pypjs.setVelocityThreshold(0.8); // Set velocity threshold to 0.8px/ms
+pypjs.setCloseThreshold(150) // Set distance threshold to 150px
+pypjs.setCloseThresholdPercent(0.4) // Set distance threshold to 40% of panel height
+pypjs.setVelocityThreshold(0.8) // Set velocity threshold to 0.8px/ms
 
 // Set overlay click behavior
-pypjs.setCloseOnOverlayClick(false);
+pypjs.setCloseOnOverlayClick(false)
 
 // Set password input
-pypjs.setEnablePassword(true);
-pypjs.setPasswordLength(6); // Set password length (default 6)
+pypjs.setEnablePassword(true)
+pypjs.setPasswordLength(6) // Set password length (default 6)
 
 // Set theme
 pypjs.setTheme({
@@ -186,10 +201,10 @@ pypjs.setTheme({
   primaryHoverColor: '#ff7875',
   panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
   panelBgDark: '#1a0f0f'
-});
+})
 
 // Reset to default configuration
-pypjs.resetConfig();
+pypjs.resetConfig()
 ```
 
 ### 9. Event Listeners
@@ -197,19 +212,19 @@ pypjs.resetConfig();
 ```javascript
 // Listen to payment confirm event
 pypjs.on('payment-confirm', (e) => {
-  const { method, amount, methodData } = e.detail;
-  console.log('Payment method:', method);
-  console.log('Amount:', amount);
-  console.log('Full data:', methodData);
-});
+  const { method, amount, methodData } = e.detail
+  console.log('Payment method:', method)
+  console.log('Amount:', amount)
+  console.log('Full data:', methodData)
+})
 
 // Listen to close event
 pypjs.on('payment-close', () => {
-  console.log('Payment panel closed');
-});
+  console.log('Payment panel closed')
+})
 
 // Remove event listener
-pypjs.off('payment-confirm', handler);
+pypjs.off('payment-confirm', handler)
 ```
 
 ## API
@@ -236,6 +251,7 @@ pypjs.off('payment-confirm', handler);
 #### Unified Configuration
 
 - `pypjs.setConfig(config: pypjsConfig)` - Configure all options
+
   - `allowSwipeToClose?: boolean` - Allow swipe to close (default true, hides drag handle when false)
   - `closeOnOverlayClick?: boolean` - Close on overlay click (default true)
   - `enablePassword?: boolean` - Enable password input (default false)
@@ -285,6 +301,7 @@ pypjs.off('payment-confirm', handler);
 ### Swipe to Close
 
 The component supports closing the panel by swiping down:
+
 - Can start dragging from the drag handle (top bar) or header area
 - When drag distance exceeds threshold or drag velocity exceeds velocity threshold, releasing will automatically close
 - If threshold is not reached, panel will bounce back to original position
@@ -294,6 +311,7 @@ The component supports closing the panel by swiping down:
 ### Password Input
 
 When password input is enabled:
+
 - Cancel/confirm buttons are automatically hidden
 - Password input field and soft keyboard are displayed
 - Payment confirm event is automatically triggered after input completion
@@ -322,10 +340,12 @@ The component supports flexible icon display configuration:
 ### Icon Types
 
 1. **Image URL**: Supports URLs starting with `http://`, `https://` or containing image extensions
+
    - Images fill a 28x28px square area with `object-fit: cover`
    - Automatically displays default SVG icon on load failure
 
 2. **String**:
+
    - Emoji (length ≤ 2): Displays fully
    - Regular string: Displays first character
    - Uses `Array.from()` to correctly handle multi-byte characters (like emoji)
@@ -338,19 +358,23 @@ The component supports flexible icon display configuration:
 // Set icon display mode
 pypjs.setConfig({
   iconDisplay: 'auto' // Show when icon exists, hide when not
-});
+})
 
 // Use image URL
 pypjs.setPaymentMethods([
   { id: 1, name: 'WeChat Pay', icon: 'https://example.com/wechat.png' },
-  { id: 2, name: 'Alipay', icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico' }
-]);
+  {
+    id: 2,
+    name: 'Alipay',
+    icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
+  }
+])
 
 // Use string
 pypjs.setPaymentMethods([
-  { id: 1, name: 'WeChat Pay', icon: '💳' },  // emoji
-  { id: 2, name: 'Alipay', icon: 'A' }        // single character
-]);
+  { id: 1, name: 'WeChat Pay', icon: '💳' }, // emoji
+  { id: 2, name: 'Alipay', icon: 'A' } // single character
+])
 ```
 
 ## Theme
@@ -362,22 +386,22 @@ The component automatically detects system theme settings and supports light and
 ```javascript
 // Use setTheme method to set theme
 pypjs.setTheme({
-  primaryColor: '#ff4d4f',                    // Primary color
-  primaryHoverColor: '#ff7875',               // Primary hover color
-  overlayColor: 'rgba(0, 0, 0, 0.6)',        // Overlay color
-  panelBgLight: '#ffffff',                    // Panel background in light mode
-  panelBgDark: '#1a0f0f',                     // Panel background in dark mode
-  textPrimaryLight: '#24292f',                // Primary text color in light mode
-  textPrimaryDark: '#e0e0e0',                 // Primary text color in dark mode
-  textSecondaryLight: '#57606a',              // Secondary text color in light mode
-  textSecondaryDark: '#999999'                // Secondary text color in dark mode
-});
+  primaryColor: '#ff4d4f', // Primary color
+  primaryHoverColor: '#ff7875', // Primary hover color
+  overlayColor: 'rgba(0, 0, 0, 0.6)', // Overlay color
+  panelBgLight: '#ffffff', // Panel background in light mode
+  panelBgDark: '#1a0f0f', // Panel background in dark mode
+  textPrimaryLight: '#24292f', // Primary text color in light mode
+  textPrimaryDark: '#e0e0e0', // Primary text color in dark mode
+  textSecondaryLight: '#57606a', // Secondary text color in light mode
+  textSecondaryDark: '#999999' // Secondary text color in dark mode
+})
 
 // Support gradient backgrounds
 pypjs.setTheme({
   panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
   panelBgDark: 'linear-gradient(135deg, #1a0f0f 0%, #2d1a1a 100%)'
-});
+})
 
 // Set theme in setConfig
 pypjs.setConfig({
@@ -385,7 +409,7 @@ pypjs.setConfig({
     primaryColor: '#ff4d4f',
     primaryHoverColor: '#ff7875'
   }
-});
+})
 ```
 
 ### Default Theme
