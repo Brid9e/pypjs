@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      pypjs:
-        specifier: 0.0.1-alpha.4
-        version: 0.0.1-alpha.4
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
@@ -244,9 +240,6 @@ packages:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
 
-  pypjs@0.0.1-alpha.4:
-    resolution: {integrity: sha512-FH2BurAPiGPgzamw0sJm9PeiboeTK1e1plNyOVhrAmlE00nj9n5euNFtgL3bNrt73I6jca/uCRo799VDApKr8A==}
-
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
 
@@ -438,8 +431,6 @@ snapshots:
   path-parse@1.0.7: {}
 
   picomatch@4.0.3: {}
-
-  pypjs@0.0.1-alpha.4: {}
 
   randombytes@2.1.0:
     dependencies:
