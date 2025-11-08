@@ -1,228 +1,383 @@
-# 支付面板 Web Component
+# papjs
 
-移动端支付面板组件。
+A simple and easy-to-use payment panel.
 
-## 安装
+## Usage
 
-```bash
-pnpm install
-```
-
-## 开发
-
-```bash
-pnpm run dev
-```
-
-## 构建
-
-```bash
-pnpm run build
-```
-
-构建完成后，会在 `dist` 目录生成 `payment-panel.js` 文件。
-
-## 使用方法
-
-### 1. 引入组件
+### 1. Include the Component
 
 ```html
-<script src="./dist/payment-panel.js"></script>
+<script src="./dist/index.js"></script>
 ```
 
-引入后会自动初始化，全局对象 `PaymentPanel` 可直接使用。
+After including, the global `PaymentPanel` object is available for use.
 
-### 2. 打开支付面板
+### 2. Open Payment Panel
 
 ```javascript
-// 基础打开
+// Basic usage
 PaymentPanel.open();
 
-// 带金额打开
+// Open with amount
 PaymentPanel.open(99.99);
 ```
 
-### 3. 关闭支付面板
+### 3. Close Payment Panel
 
 ```javascript
 PaymentPanel.close();
 ```
 
-### 4. 设置金额
+### 4. Set Amount
 
 ```javascript
 PaymentPanel.setAmount(199.00);
 ```
 
-### 5. 自定义支付方式
+### 5. Custom Payment Methods
+
+#### Basic Usage
 
 ```javascript
-// 设置支付方式列表和字段映射
+// Set payment methods list and field mapping
 PaymentPanel.setPaymentMethods(
   [
-    { id: 1, name: '微信支付', desc: '推荐使用', icon: '💳' },
-    { id: 2, name: '支付宝', desc: '安全便捷', icon: '💰' },
-    { id: 3, name: 'Apple Pay', desc: '快速支付', icon: '🍎' }
+    { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+    { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+    { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
   ],
   {
-    titleField: 'name',      // 标题字段名
-    subtitleField: 'desc',   // 副标题字段名
-    iconField: 'icon',       // 图标字段名
-    valueField: 'id'         // 值字段名
+    titleField: 'name',      // Title field name
+    subtitleField: 'desc',   // Subtitle field name
+    iconField: 'icon',       // Icon field name
+    valueField: 'id'         // Value field name
   }
 );
 ```
 
-### 6. 统一配置
+#### Two-Level Grouping
+
+Supports two-level grouping structure. Click group headers to expand/collapse items:
 
 ```javascript
-// 使用 setConfig 方法统一配置所有选项
+PaymentPanel.setPaymentMethods(
+  [
+    {
+      name: 'Online Payment',
+      children: [
+        { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+        { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+        { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+      ]
+    },
+    {
+      name: 'Bank Card',
+      children: [
+        { id: 4, name: 'Debit Card', desc: 'All Banks Supported', icon: '💵' },
+        { id: 5, name: 'Credit Card', desc: 'All Banks Supported', icon: '💳' }
+      ]
+    }
+  ],
+  {
+    titleField: 'name',
+    subtitleField: 'desc',
+    iconField: 'icon',
+    valueField: 'id'
+  }
+);
+```
+
+#### Icon Types
+
+Supports three icon types:
+
+1. **Image URL**: Automatically recognizes strings starting with `http://`, `https://` or containing image extensions
+   ```javascript
+   { icon: 'https://example.com/icon.png' }
+   ```
+
+2. **String**: Displays first character (emoji displays fully)
+   ```javascript
+   { icon: '💳' }  // emoji
+   { icon: 'A' }   // single character
+   { icon: 'Alipay' } // displays first character "A"
+   ```
+
+3. **No Icon**: Displays default SVG icon
+   ```javascript
+   { name: 'Bank Card' } // no icon field
+   ```
+
+### 6. Unified Configuration
+
+```javascript
+// Use setConfig to configure all options
 PaymentPanel.setConfig({
-  allowSwipeToClose: false,        // 是否允许下拉关闭（false时隐藏拖动滑块）
-  closeOnOverlayClick: false,      // 点击遮罩层是否关闭
-  enablePassword: true,            // 是否启用密码输入
-  passwordLength: 6,               // 密码位数（默认6位）
-  headerTitle: '确认付款',         // 标题文本（默认"支付"）
-  closeThreshold: 150,             // 关闭距离阈值（像素）
-  closeThresholdPercent: 0.4,      // 关闭距离阈值（百分比，0-1之间）
-  velocityThreshold: 0.8           // 速度阈值（像素/毫秒）
+  allowSwipeToClose: false,        // Allow swipe to close (hides drag handle when false)
+  closeOnOverlayClick: false,      // Close on overlay click
+  enablePassword: true,            // Enable password input
+  passwordLength: 6,               // Password length (default 6)
+  headerTitle: 'Confirm Payment',  // Header title (default "Payment")
+  amountLabel: 'Payment Amount',   // Amount label (default "Payment Amount")
+  iconDisplay: 'always',           // Icon display mode: 'always' | 'never' | 'auto' (default 'always')
+  closeThreshold: 150,             // Close distance threshold (pixels)
+  closeThresholdPercent: 0.4,      // Close distance threshold (percentage, 0-1)
+  velocityThreshold: 0.8,          // Velocity threshold (pixels/ms)
+  theme: {                         // Theme configuration
+    primaryColor: '#ff4d4f',
+    primaryHoverColor: '#ff7875',
+    overlayColor: 'rgba(0, 0, 0, 0.6)',
+    panelBgLight: '#ffffff',
+    panelBgDark: '#2d2d2d',
+    textPrimaryLight: '#24292f',
+    textPrimaryDark: '#e0e0e0'
+  }
 });
 ```
 
-**注意**：`setConfig` 方法中，如果某个配置项没有传入（undefined），会自动恢复为默认值。这样可以防止团队成员之间的配置互相影响。
+**Note**: In `setConfig`, if a configuration item is not provided (undefined), it will automatically revert to the default value. This prevents configuration conflicts between team members.
 
-### 7. 单独设置配置项
+### 7. Individual Configuration Methods
 
 ```javascript
-// 设置标题
-PaymentPanel.setHeaderTitle('确认付款');
+// Set title
+PaymentPanel.setHeaderTitle('Confirm Payment');
 
-// 设置关闭阈值
-PaymentPanel.setCloseThreshold(150); // 设置距离阈值为150px
-PaymentPanel.setCloseThresholdPercent(0.4); // 设置距离阈值为面板高度的40%
-PaymentPanel.setVelocityThreshold(0.8); // 设置速度阈值为0.8px/ms
+// Set amount label
+PaymentPanel.setAmountLabel('Payment Amount');
 
-// 设置点击遮罩层是否关闭
+// Set close thresholds
+PaymentPanel.setCloseThreshold(150); // Set distance threshold to 150px
+PaymentPanel.setCloseThresholdPercent(0.4); // Set distance threshold to 40% of panel height
+PaymentPanel.setVelocityThreshold(0.8); // Set velocity threshold to 0.8px/ms
+
+// Set overlay click behavior
 PaymentPanel.setCloseOnOverlayClick(false);
 
-// 设置密码输入
+// Set password input
 PaymentPanel.setEnablePassword(true);
-PaymentPanel.setPasswordLength(6); // 设置密码位数（默认6位）
+PaymentPanel.setPasswordLength(6); // Set password length (default 6)
 
-// 重置为默认配置
+// Set theme
+PaymentPanel.setTheme({
+  primaryColor: '#ff4d4f',
+  primaryHoverColor: '#ff7875',
+  panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
+  panelBgDark: '#1a0f0f'
+});
+
+// Reset to default configuration
 PaymentPanel.resetConfig();
 ```
 
-### 8. 监听事件
+### 8. Event Listeners
 
 ```javascript
-// 监听支付确认事件
+// Listen to payment confirm event
 PaymentPanel.on('payment-confirm', (e) => {
   const { method, amount, methodData } = e.detail;
-  console.log('支付方式:', method);
-  console.log('支付金额:', amount);
-  console.log('完整数据:', methodData);
+  console.log('Payment method:', method);
+  console.log('Amount:', amount);
+  console.log('Full data:', methodData);
 });
 
-// 监听关闭事件
+// Listen to close event
 PaymentPanel.on('payment-close', () => {
-  console.log('支付面板已关闭');
+  console.log('Payment panel closed');
 });
 
-// 移除事件监听
+// Remove event listener
 PaymentPanel.off('payment-confirm', handler);
 ```
 
 ## API
 
-### 全局方法
+### Global Methods
 
-#### 基础方法
+#### Basic Methods
 
-- `PaymentPanel.open(amount?: number)` - 打开支付面板，可选传入金额
-- `PaymentPanel.close()` - 关闭支付面板
-- `PaymentPanel.setAmount(amount: number)` - 设置支付金额
+- `PaymentPanel.open(amount?: number)` - Open payment panel, optionally with amount
+- `PaymentPanel.close()` - Close payment panel
+- `PaymentPanel.setAmount(amount: number)` - Set payment amount
 
-#### 支付方式
+#### Payment Methods
 
-- `PaymentPanel.setPaymentMethods(methods?, fieldMapping?)` - 设置支付方式列表
-  - `methods`: 支付方式数组（可选），如果不传或传空数组，会恢复为默认支付方式
-  - `fieldMapping`: 可选，字段映射配置
-    - `titleField`: 标题字段名（默认 'title' 或 'name'）
-    - `subtitleField`: 副标题字段名（默认 'subtitle' 或 'desc'）
-    - `iconField`: 图标字段名（默认 'icon'）
-    - `valueField`: 值字段名（默认 'value' 或 'id'）
-- `PaymentPanel.getSelectedMethod()` - 获取当前选中的支付方式
+- `PaymentPanel.setPaymentMethods(methods?, fieldMapping?)` - Set payment methods list
+  - `methods`: Payment methods array (optional), if not provided or empty array, restores default payment methods
+  - `fieldMapping`: Optional field mapping configuration
+    - `titleField`: Title field name (default 'title' or 'name')
+    - `subtitleField`: Subtitle field name (default 'subtitle' or 'desc')
+    - `iconField`: Icon field name (default 'icon')
+    - `valueField`: Value field name (default 'value' or 'id')
+- `PaymentPanel.getSelectedMethod()` - Get currently selected payment method
 
-#### 统一配置
+#### Unified Configuration
 
-- `PaymentPanel.setConfig(config: PaymentPanelConfig)` - 统一配置所有选项
-  - `allowSwipeToClose?: boolean` - 是否允许下拉关闭（默认 true，false 时隐藏拖动滑块）
-  - `closeOnOverlayClick?: boolean` - 点击遮罩层是否关闭（默认 true）
-  - `enablePassword?: boolean` - 是否启用密码输入（默认 false）
-  - `passwordLength?: number` - 密码位数（默认 6，范围 4-12）
-  - `headerTitle?: string` - 标题文本（默认 "支付"）
-  - `closeThreshold?: number` - 关闭距离阈值（像素，默认 100）
-  - `closeThresholdPercent?: number` - 关闭距离阈值（百分比，默认 0.3）
-  - `velocityThreshold?: number` - 速度阈值（像素/毫秒，默认 0.5）
+- `PaymentPanel.setConfig(config: PaymentPanelConfig)` - Configure all options
+  - `allowSwipeToClose?: boolean` - Allow swipe to close (default true, hides drag handle when false)
+  - `closeOnOverlayClick?: boolean` - Close on overlay click (default true)
+  - `enablePassword?: boolean` - Enable password input (default false)
+  - `passwordLength?: number` - Password length (default 6, range 4-12)
+  - `headerTitle?: string` - Header title text (default "Payment")
+  - `amountLabel?: string` - Amount label text (default "Payment Amount")
+  - `iconDisplay?: 'always' | 'never' | 'auto'` - Icon display mode (default "always")
+    - `always`: Always show icon area
+    - `never`: Never show icon area
+    - `auto`: Show when icon value exists, hide when not
+  - `closeThreshold?: number` - Close distance threshold (pixels, default 100)
+  - `closeThresholdPercent?: number` - Close distance threshold (percentage, default 0.3)
+  - `velocityThreshold?: number` - Velocity threshold (pixels/ms, default 0.5)
+  - `theme?: ThemeConfig` - Theme configuration object
+    - `primaryColor?: string` - Primary color (default "#238636")
+    - `primaryHoverColor?: string` - Primary hover color (default "#2ea043")
+    - `overlayColor?: string` - Overlay color (default "rgba(0, 0, 0, 0.5)")
+    - `panelBgLight?: string` - Panel background color in light mode (default "#ffffff", supports gradients)
+    - `panelBgDark?: string` - Panel background color in dark mode (default "#2d2d2d", supports gradients)
+    - `textPrimaryLight?: string` - Primary text color in light mode (default "#24292f")
+    - `textPrimaryDark?: string` - Primary text color in dark mode (default "#e0e0e0")
+    - `textSecondaryLight?: string` - Secondary text color in light mode (default "#57606a")
+    - `textSecondaryDark?: string` - Secondary text color in dark mode (default "#999999")
 
-  **注意**：如果某个配置项没有传入（undefined），会自动恢复为默认值。
+  **Note**: If a configuration item is not provided (undefined), it will automatically revert to the default value.
 
-- `PaymentPanel.resetConfig()` - 重置所有配置为默认值
+- `PaymentPanel.resetConfig()` - Reset all configurations to default values
 
-#### 单独配置方法
+#### Individual Configuration Methods
 
-- `PaymentPanel.setHeaderTitle(title: string)` - 设置标题文本
-- `PaymentPanel.setCloseThreshold(threshold: number)` - 设置关闭距离阈值（像素）
-- `PaymentPanel.setCloseThresholdPercent(percent: number)` - 设置关闭距离阈值（百分比，0-1之间）
-- `PaymentPanel.setVelocityThreshold(threshold: number)` - 设置速度阈值（像素/毫秒）
-- `PaymentPanel.setCloseOnOverlayClick(close: boolean)` - 设置点击遮罩层是否关闭
-- `PaymentPanel.setEnablePassword(enable: boolean)` - 设置是否启用密码输入
-- `PaymentPanel.setPasswordLength(length: number)` - 设置密码位数（4-12位）
+- `PaymentPanel.setHeaderTitle(title: string)` - Set header title text
+- `PaymentPanel.setAmountLabel(label: string)` - Set amount label text
+- `PaymentPanel.setCloseThreshold(threshold: number)` - Set close distance threshold (pixels)
+- `PaymentPanel.setCloseThresholdPercent(percent: number)` - Set close distance threshold (percentage, 0-1)
+- `PaymentPanel.setVelocityThreshold(threshold: number)` - Set velocity threshold (pixels/ms)
+- `PaymentPanel.setCloseOnOverlayClick(close: boolean)` - Set whether to close on overlay click
+- `PaymentPanel.setEnablePassword(enable: boolean)` - Set whether to enable password input
+- `PaymentPanel.setPasswordLength(length: number)` - Set password length (4-12 digits)
+- `PaymentPanel.setTheme(theme: ThemeConfig)` - Set theme configuration
+- `PaymentPanel.getTheme()` - Get current theme configuration
 
-#### 事件
+#### Events
 
-- `PaymentPanel.on(event, handler)` - 监听事件（自动去重，同一个 handler 只会添加一次）
-- `PaymentPanel.off(event, handler)` - 移除事件监听
+- `PaymentPanel.on(event, handler)` - Listen to events (auto-deduplication, same handler only added once)
+- `PaymentPanel.off(event, handler)` - Remove event listener
 
-### 拖拽关闭
+### Swipe to Close
 
-组件支持通过向下拖拽来关闭面板：
-- 可以从拖拽手柄（顶部横条）或标题栏区域开始拖拽
-- 拖拽距离超过阈值或拖拽速度超过速度阈值时，松开手指会自动关闭
-- 未达到阈值时，面板会回弹到原位置
-- 内容区域可以正常滚动，不会触发拖拽
-- 可以通过 `allowSwipeToClose: false` 禁用下拉关闭功能，此时拖动滑块会自动隐藏
+The component supports closing the panel by swiping down:
+- Can start dragging from the drag handle (top bar) or header area
+- When drag distance exceeds threshold or drag velocity exceeds velocity threshold, releasing will automatically close
+- If threshold is not reached, panel will bounce back to original position
+- Content area can scroll normally without triggering drag
+- Can disable swipe to close with `allowSwipeToClose: false`, which automatically hides the drag handle
 
-### 密码输入
+### Password Input
 
-启用密码输入功能后：
-- 会自动隐藏取消/确认按钮
-- 显示密码输入框和软键盘
-- 输入完成后自动触发支付确认事件
-- 密码位数可配置（默认6位，范围4-12位）
-- 密码会包含在 `payment-confirm` 事件的 `detail.password` 中
+When password input is enabled:
+- Cancel/confirm buttons are automatically hidden
+- Password input field and soft keyboard are displayed
+- Payment confirm event is automatically triggered after input completion
+- Password length is configurable (default 6 digits, range 4-12)
+- Password is included in `payment-confirm` event's `detail.password`
 
-### 事件
+### Events
 
-- `payment-confirm` - 支付确认时触发，事件详情包含：
-  - `method`: 选择的支付方式的值（根据 valueField 配置）
-  - `methodData`: 完整的支付方式对象
-  - `amount`: 支付金额
-  - `password`: 密码（如果启用了密码输入）
-- `payment-close` - 支付面板关闭时触发
+- `payment-confirm` - Triggered when payment is confirmed, event detail contains:
+  - `method`: Selected payment method value (according to valueField configuration)
+  - `methodData`: Complete payment method object
+  - `amount`: Payment amount
+  - `password`: Password (if password input is enabled)
+- `payment-close` - Triggered when payment panel is closed
 
-## 主题
+## Icon Display
 
-组件会自动检测系统主题设置，支持亮色主题和暗色主题。使用 GitHub 风格的配色方案，所有颜色通过 CSS 变量管理，可以轻松自定义。
+The component supports flexible icon display configuration:
 
-## 浏览器支持
+### Icon Display Modes
 
-- Chrome/Edge (最新版本)
-- Firefox (最新版本)
-- Safari (最新版本)
-- 移动端浏览器
+- **always** (default): Always show icon area, displays default SVG icon even when no icon value
+- **never**: Never show icon area
+- **auto**: Show when icon value exists, hide when icon value is missing or fails to load
 
-## 许可证
+### Icon Types
+
+1. **Image URL**: Supports URLs starting with `http://`, `https://` or containing image extensions
+   - Images fill a 28x28px square area with `object-fit: cover`
+   - Automatically displays default SVG icon on load failure
+
+2. **String**:
+   - Emoji (length ≤ 2): Displays fully
+   - Regular string: Displays first character
+   - Uses `Array.from()` to correctly handle multi-byte characters (like emoji)
+
+3. **Default Icon**: Displays default SVG icon when no icon value or image load failure
+
+### Examples
+
+```javascript
+// Set icon display mode
+PaymentPanel.setConfig({
+  iconDisplay: 'auto' // Show when icon exists, hide when not
+});
+
+// Use image URL
+PaymentPanel.setPaymentMethods([
+  { id: 1, name: 'WeChat Pay', icon: 'https://example.com/wechat.png' },
+  { id: 2, name: 'Alipay', icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico' }
+]);
+
+// Use string
+PaymentPanel.setPaymentMethods([
+  { id: 1, name: 'WeChat Pay', icon: '💳' },  // emoji
+  { id: 2, name: 'Alipay', icon: 'A' }        // single character
+]);
+```
+
+## Theme
+
+The component automatically detects system theme settings and supports light and dark themes. All colors are managed through CSS variables for easy customization.
+
+### Theme Configuration
+
+```javascript
+// Use setTheme method to set theme
+PaymentPanel.setTheme({
+  primaryColor: '#ff4d4f',                    // Primary color
+  primaryHoverColor: '#ff7875',               // Primary hover color
+  overlayColor: 'rgba(0, 0, 0, 0.6)',        // Overlay color
+  panelBgLight: '#ffffff',                    // Panel background in light mode
+  panelBgDark: '#1a0f0f',                     // Panel background in dark mode
+  textPrimaryLight: '#24292f',                // Primary text color in light mode
+  textPrimaryDark: '#e0e0e0',                 // Primary text color in dark mode
+  textSecondaryLight: '#57606a',              // Secondary text color in light mode
+  textSecondaryDark: '#999999'                // Secondary text color in dark mode
+});
+
+// Support gradient backgrounds
+PaymentPanel.setTheme({
+  panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
+  panelBgDark: 'linear-gradient(135deg, #1a0f0f 0%, #2d1a1a 100%)'
+});
+
+// Set theme in setConfig
+PaymentPanel.setConfig({
+  theme: {
+    primaryColor: '#ff4d4f',
+    primaryHoverColor: '#ff7875'
+  }
+});
+```
+
+### Default Theme
+
+- Light mode: GitHub-style color scheme
+- Dark mode: Grayscale color scheme for broad aesthetic appeal
+
+## Browser Support
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Mobile browsers
+
+## License
 
 ISC

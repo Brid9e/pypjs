@@ -1,8 +1,8 @@
 {
-  "name": "payment-panel-web-component",
+  "name": "papjs",
   "version": "1.0.0",
-  "description": "移动端支付面板Web Component组件",
-  "main": "dist/payment-panel.js",
+  "description": "A simple and easy-to-use payment panel",
+  "main": "dist/index.js",
   "packageManager": "pnpm@8.0.0",
   "files": [
     "dist",

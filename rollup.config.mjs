@@ -4,7 +4,7 @@ import terser from '@rollup/plugin-terser';
 export default {
   input: 'src/index.ts',
   output: {
-    file: 'dist/payment-panel.js',
+    file: 'dist/index.js',
     format: 'iife',
     name: 'PaymentPanelModule',
     sourcemap: false
