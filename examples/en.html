@@ -339,6 +339,27 @@
           • Only set the fields you want to customize, others will use default translations
         </div>
       </div>
+
+      <!-- Theme Mode -->
+      <div class="demo-section">
+        <h2>Theme Mode</h2>
+        <button class="btn" onclick="openPanelWithThemeMode('light')">
+          Light Mode
+        </button>
+        <button class="btn" onclick="openPanelWithThemeMode('dark')">
+          Dark Mode
+        </button>
+        <button class="btn" onclick="openPanelWithThemeMode('auto')">
+          Auto (Follow System)
+        </button>
+        <div class="info">
+          Control theme mode:<br />
+          • themeMode: 'light' | 'dark' | 'auto' (default: 'auto') - Set theme mode<br />
+          • 'light': Force light theme<br />
+          • 'dark': Force dark theme<br />
+          • 'auto': Follow system theme (automatically detects and responds to system theme changes)
+        </div>
+      </div>
     </div>
 
     <!-- Include the bundled component -->
@@ -743,6 +764,18 @@
 
         pypjs.on('payment-confirm', eventConfirmHandler)
         pypjs.open(299.99)
+      }
+
+      // Theme mode example
+      function openPanelWithThemeMode(mode) {
+        pypjs.setConfig({
+          themeMode: mode
+        })
+
+        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
       }
     </script>
   </body>

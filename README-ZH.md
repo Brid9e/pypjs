@@ -138,6 +138,7 @@ pypjs.setConfig({
     headerTitle: '自定义标题',
     confirmButton: '确认'
   },
+  themeMode: 'auto',               // 主题模式：'light' | 'dark' | 'auto'（默认'auto'）
   theme: {                         // 主题配置
     primaryColor: '#ff4d4f',
     primaryHoverColor: '#ff7875',
@@ -160,6 +161,7 @@ pypjs.setAmountLabel('付款金额');
 pypjs.setEnablePassword(true);
 pypjs.setPasswordLength(6);
 pypjs.setLanguage('zh');
+pypjs.setThemeMode('dark'); // 'light' | 'dark' | 'auto'
 pypjs.setTheme({ primaryColor: '#ff4d4f' });
 pypjs.resetConfig();
 // ... 更多方法
@@ -216,9 +218,13 @@ pypjs.setConfig({
 
 ### 主题
 
-自动检测系统主题设置，支持亮色和暗色主题，可自定义颜色。背景支持渐变。
+支持主题模式配置：`light`（亮色）、`dark`（暗色）或 `auto`（跟随系统）。默认为 `auto`。设置为 `auto` 时会自动检测系统主题。支持自定义颜色和渐变背景。
 
 ```javascript
+// 设置主题模式
+pypjs.setThemeMode('dark'); // 'light' | 'dark' | 'auto'
+
+// 设置主题颜色
 pypjs.setTheme({
   primaryColor: '#ff4d4f',
   primaryHoverColor: '#ff7875',
@@ -279,6 +285,7 @@ pypjs.setTheme({
     - `confirmButton?: string` - 确认按钮文本
     - `emptyStateText?: string` - 空状态文本
     - `closeAriaLabel?: string` - 关闭按钮无障碍标签
+  - `themeMode?: 'light' | 'dark' | 'auto'` - 主题模式（默认 'auto'）
   - `theme?: ThemeConfig` - 主题配置对象
     - `primaryColor?: string` - 主色调（默认 "#238636"）
     - `primaryHoverColor?: string` - 主色调悬停色（默认 "#2ea043"）
@@ -311,6 +318,7 @@ pypjs.setTheme({
 - `pypjs.setTextFont(font: string)` - 设置文本字体
 - `pypjs.setLanguage(lang: 'zh' | 'en' | 'ja' | 'ru')` - 设置语言
 - `pypjs.setI18n(i18n: Partial<I18nTexts>)` - 设置自定义多语言文本（部分覆盖）
+- `pypjs.setThemeMode(mode: 'light' | 'dark' | 'auto')` - 设置主题模式
 - `pypjs.setTheme(theme: ThemeConfig)` - 设置主题配置
 - `pypjs.getTheme()` - 获取当前主题配置
 

@@ -141,6 +141,7 @@ pypjs.setConfig({
     headerTitle: 'Custom Title',
     confirmButton: 'Confirm'
   },
+  themeMode: 'auto', // Theme mode: 'light' | 'dark' | 'auto' (default 'auto')
   theme: {
     // Theme configuration
     primaryColor: '#ff4d4f',
@@ -164,6 +165,7 @@ pypjs.setAmountLabel('Payment Amount')
 pypjs.setEnablePassword(true)
 pypjs.setPasswordLength(6)
 pypjs.setLanguage('zh')
+pypjs.setThemeMode('dark') // 'light' | 'dark' | 'auto'
 pypjs.setTheme({ primaryColor: '#ff4d4f' })
 pypjs.resetConfig()
 // ... and more
@@ -220,9 +222,13 @@ Supports custom amount alignment (`left` | `center` | `right`) and fonts for amo
 
 ### Theme
 
-Automatically detects system theme settings. Supports light and dark themes with customizable colors. Backgrounds support gradients.
+Supports theme mode configuration: `light`, `dark`, or `auto` (follow system). Default is `auto`. Automatically detects system theme when set to `auto`. Supports customizable colors and gradient backgrounds.
 
 ```javascript
+// Set theme mode
+pypjs.setThemeMode('dark') // 'light' | 'dark' | 'auto'
+
+// Set theme colors
 pypjs.setTheme({
   primaryColor: '#ff4d4f',
   primaryHoverColor: '#ff7875',
@@ -284,6 +290,7 @@ pypjs.setTheme({
     - `confirmButton?: string` - Confirm button text
     - `emptyStateText?: string` - Empty state text
     - `closeAriaLabel?: string` - Close button aria label
+  - `themeMode?: 'light' | 'dark' | 'auto'` - Theme mode (default 'auto')
   - `theme?: ThemeConfig` - Theme configuration object
     - `primaryColor?: string` - Primary color (default "#238636")
     - `primaryHoverColor?: string` - Primary hover color (default "#2ea043")
@@ -316,6 +323,7 @@ pypjs.setTheme({
 - `pypjs.setTextFont(font: string)` - Set text font
 - `pypjs.setLanguage(lang: 'zh' | 'en' | 'ja' | 'ru')` - Set language
 - `pypjs.setI18n(i18n: Partial<I18nTexts>)` - Set custom i18n texts (partial override)
+- `pypjs.setThemeMode(mode: 'light' | 'dark' | 'auto')` - Set theme mode
 - `pypjs.setTheme(theme: ThemeConfig)` - Set theme configuration
 - `pypjs.getTheme()` - Get current theme configuration
 

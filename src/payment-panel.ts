@@ -21,7 +21,8 @@ const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme' | 'headerTitle' 
   amountAlign: 'left',
   amountFont: '',
   textFont: '',
-  language: 'en'
+  language: 'en',
+  themeMode: 'auto'
 }
 
 /**
@@ -65,6 +66,8 @@ class PaymentPanel extends HTMLElement {
   private textFont: string = DEFAULT_CONFIG.textFont
   private language: Language = DEFAULT_CONFIG.language as Language
   private customI18n?: Partial<I18nTexts> // Custom i18n texts to override defaults
+  private themeMode: 'light' | 'dark' | 'auto' = DEFAULT_CONFIG.themeMode as 'light' | 'dark' | 'auto'
+  private systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null // System theme change listener
 
   // Theme configuration
   private theme: PaymentPanelConfig['theme'] = {}
@@ -176,7 +179,7 @@ class PaymentPanel extends HTMLElement {
 
     this.render()
     this.setupEventListeners()
-    this.detectSystemTheme()
+    this.updateThemeMode()
 
     // Initialize password input (after render)
     this.initPasswordInput()
@@ -194,30 +197,55 @@ class PaymentPanel extends HTMLElement {
    */
   disconnectedCallback() {
     this.removeEventListeners()
+    // Clean up system theme listener
+    if (this.systemThemeListener) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.removeEventListener('change', this.systemThemeListener)
+      this.systemThemeListener = null
+    }
   }
 
   /**
-   * Detect system theme
-   * Listens to system dark/light mode changes and automatically updates component theme
+   * Update theme mode
+   * Updates the component's theme based on themeMode configuration
    * @author Brid9e
    */
-  private detectSystemTheme() {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    this.updateTheme(mediaQuery.matches)
+  private updateThemeMode() {
+    // Remove existing listener if any
+    if (this.systemThemeListener) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.removeEventListener('change', this.systemThemeListener)
+      this.systemThemeListener = null
+    }
 
-    // Listen to system theme changes
-    mediaQuery.addEventListener('change', (e) => {
-      this.updateTheme(e.matches)
-    })
+    const root = this.shadow.host
+
+    if (this.themeMode === 'auto') {
+      // Follow system theme
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      this.applyTheme(mediaQuery.matches)
+
+      // Listen to system theme changes
+      this.systemThemeListener = (e: MediaQueryListEvent) => {
+        this.applyTheme(e.matches)
+      }
+      mediaQuery.addEventListener('change', this.systemThemeListener)
+    } else if (this.themeMode === 'dark') {
+      // Force dark mode
+      this.applyTheme(true)
+    } else {
+      // Force light mode (default)
+      this.applyTheme(false)
+    }
   }
 
   /**
-   * Update theme
-   * Sets the component's data-theme attribute based on system theme
+   * Apply theme
+   * Sets the component's data-theme attribute
    * @param {boolean} isDark - Whether it's dark mode
    * @author Brid9e
    */
-  private updateTheme(isDark: boolean) {
+  private applyTheme(isDark: boolean) {
     const root = this.shadow.host
     if (isDark) {
       root.setAttribute('data-theme', 'dark')
@@ -2126,6 +2154,15 @@ class PaymentPanel extends HTMLElement {
       }
     }
 
+    const oldThemeMode = this.themeMode
+    this.themeMode = config.themeMode !== undefined
+      ? config.themeMode
+      : DEFAULT_CONFIG.themeMode as 'light' | 'dark' | 'auto'
+    // If themeMode changed, need to update theme
+    if (config.themeMode !== undefined || oldThemeMode !== this.themeMode) {
+      this.updateThemeMode()
+    }
+
     // Set theme
     if (config.theme !== undefined) {
       // setTheme method automatically handles empty object, resets to default
@@ -2307,6 +2344,17 @@ class PaymentPanel extends HTMLElement {
     if (!this.amountLabel) {
       this.updateAmountLabel()
     }
+  }
+
+  /**
+   * Set theme mode
+   * Sets the theme mode: 'light', 'dark', or 'auto' (follow system)
+   * @param {('light' | 'dark' | 'auto')} mode - Theme mode
+   * @author Brid9e
+   */
+  public setThemeMode(mode: 'light' | 'dark' | 'auto') {
+    this.themeMode = mode
+    this.updateThemeMode()
   }
 
   /**

@@ -279,6 +279,16 @@ const PaymentPanelAPI = {
   },
 
   /**
+   * Set theme mode
+   * Sets the theme mode: 'light', 'dark', or 'auto' (follow system)
+   * @param {('light' | 'dark' | 'auto')} mode - Theme mode
+   * @author Brid9e
+   */
+  setThemeMode(mode: 'light' | 'dark' | 'auto') {
+    getInstance().setThemeMode(mode)
+  },
+
+  /**
    * Listen to events (auto-deduplication, same handler will only be added once)
    * @param {'payment-confirm' | 'payment-close'} event - Event name
    * @param {(e: CustomEvent) => void} handler - Event handler function

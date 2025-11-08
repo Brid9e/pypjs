@@ -334,6 +334,27 @@
           • 只需设置需要自定义的字段，其他字段会使用默认翻译
         </div>
       </div>
+
+      <!-- Theme Mode -->
+      <div class="demo-section">
+        <h2>主题模式</h2>
+        <button class="btn" onclick="openPanelWithThemeMode('light')">
+          亮色模式
+        </button>
+        <button class="btn" onclick="openPanelWithThemeMode('dark')">
+          暗色模式
+        </button>
+        <button class="btn" onclick="openPanelWithThemeMode('auto')">
+          跟随系统
+        </button>
+        <div class="info">
+          控制主题模式：<br />
+          • themeMode: 'light' | 'dark' | 'auto'（默认: 'auto'）- 设置主题模式<br />
+          • 'light': 强制使用亮色主题<br />
+          • 'dark': 强制使用暗色主题<br />
+          • 'auto': 跟随系统主题（自动检测并响应系统主题变化）
+        </div>
+      </div>
     </div>
 
     <!-- Include the bundled component -->
@@ -737,6 +758,18 @@
 
         pypjs.on('payment-confirm', eventConfirmHandler)
         pypjs.open(299.99)
+      }
+
+      // 主题模式示例
+      function openPanelWithThemeMode(mode) {
+        pypjs.setConfig({
+          themeMode: mode
+        })
+
+        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+
+        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.open(199.99)
       }
     </script>
   </body>

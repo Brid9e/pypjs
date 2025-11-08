@@ -128,6 +128,9 @@ export interface PaymentPanelConfig {
   /** Custom i18n texts to override default translations, partial override supported */
   i18n?: Partial<I18nTexts>
 
+  /** Theme mode: 'light' | 'dark' | 'auto' (follow system), default "auto" */
+  themeMode?: 'light' | 'dark' | 'auto'
+
   /** Theme configuration */
   theme?: ThemeConfig
 }
