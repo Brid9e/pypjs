@@ -42,8 +42,9 @@ After including, the global `pypjs` object is available for use.
 // Basic usage
 pypjs.open()
 
-// Open with amount
+// Open with amount (supports number or string)
 pypjs.open(99.99)
+pypjs.open("99.99") // String will be converted to number
 ```
 
 ### 4. Close Payment Panel
@@ -55,7 +56,12 @@ pypjs.close()
 ### 5. Set Amount
 
 ```javascript
+// Supports number or string
 pypjs.setAmount(199.0)
+pypjs.setAmount("199.0") // String will be converted to number
+
+// Invalid string will throw an error
+pypjs.setAmount("abc") // Error: Invalid amount: "abc" cannot be converted to number
 ```
 
 ### 6. Custom Payment Methods
@@ -243,9 +249,9 @@ pypjs.setTheme({
 
 #### Basic Methods
 
-- `pypjs.open(amount?: number)` - Open payment panel, optionally with amount
+- `pypjs.open(amount?: number | string)` - Open payment panel, optionally with amount
 - `pypjs.close()` - Close payment panel
-- `pypjs.setAmount(amount: number)` - Set payment amount
+- `pypjs.setAmount(amount: number | string)` - Set payment amount
 
 #### Payment Methods
 

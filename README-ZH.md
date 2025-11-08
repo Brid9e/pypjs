@@ -40,8 +40,9 @@ pypjs.setConfig({ headerTitle: '支付' })
 // 基础打开
 pypjs.open();
 
-// 带金额打开
+// 带金额打开（支持 number 或 string）
 pypjs.open(99.99);
+pypjs.open("99.99"); // 字符串会自动转换为数字
 ```
 
 ### 4. 关闭支付面板
@@ -53,7 +54,12 @@ pypjs.close();
 ### 5. 设置金额
 
 ```javascript
+// 支持 number 或 string
 pypjs.setAmount(199.00);
+pypjs.setAmount("199.00"); // 字符串会自动转换为数字
+
+// 无效的字符串会抛出错误
+pypjs.setAmount("abc"); // 错误: Invalid amount: "abc" cannot be converted to number
 ```
 
 ### 6. 自定义支付方式
@@ -239,9 +245,9 @@ pypjs.setTheme({
 
 #### 基础方法
 
-- `pypjs.open(amount?: number)` - 打开支付面板，可选传入金额
+- `pypjs.open(amount?: number | string)` - 打开支付面板，可选传入金额
 - `pypjs.close()` - 关闭支付面板
-- `pypjs.setAmount(amount: number)` - 设置支付金额
+- `pypjs.setAmount(amount: number | string)` - 设置支付金额
 
 #### 支付方式
 

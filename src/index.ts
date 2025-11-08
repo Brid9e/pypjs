@@ -49,10 +49,11 @@ function getInstance(): PaymentPanel {
 const PaymentPanelAPI = {
   /**
    * Open payment panel
-   * @param {number} [amount] - Payment amount, optional
+   * @param {number | string} [amount] - Payment amount, optional
+   * @throws {Error} If string cannot be converted to number
    * @author Brid9e
    */
-  open(amount?: number) {
+  open(amount?: number | string) {
     getInstance().open(amount)
   },
 
@@ -66,10 +67,11 @@ const PaymentPanelAPI = {
 
   /**
    * Set amount
-   * @param {number} amount - Payment amount
+   * @param {number | string} amount - Payment amount
+   * @throws {Error} If string cannot be converted to number
    * @author Brid9e
    */
-  setAmount(amount: number) {
+  setAmount(amount: number | string) {
     getInstance().setAmount(amount)
   },
 

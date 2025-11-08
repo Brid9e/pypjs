@@ -1763,12 +1763,44 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * Open payment panel
-   * Shows payment panel, optionally sets payment amount
-   * @param {number} [amount] - Payment amount, optional
+   * Convert amount to number
+   * Converts number or string to number, throws error if conversion fails
+   * @param {number | string} amount - Amount value
+   * @returns {number} Converted number
+   * @throws {Error} If string cannot be converted to number
    * @author Brid9e
    */
-  public open(amount?: number) {
+  private convertAmountToNumber(amount: number | string): number {
+    if (typeof amount === 'number') {
+      if (isNaN(amount) || !isFinite(amount)) {
+        throw new Error(`Invalid amount: ${amount} is not a valid number`)
+      }
+      return amount
+    }
+
+    if (typeof amount === 'string') {
+      const trimmed = amount.trim()
+      if (trimmed === '') {
+        throw new Error('Invalid amount: empty string cannot be converted to number')
+      }
+      const num = parseFloat(trimmed)
+      if (isNaN(num) || !isFinite(num)) {
+        throw new Error(`Invalid amount: "${amount}" cannot be converted to number`)
+      }
+      return num
+    }
+
+    throw new Error(`Invalid amount: expected number or string, got ${typeof amount}`)
+  }
+
+  /**
+   * Open payment panel
+   * Shows payment panel, optionally sets payment amount
+   * @param {number | string} [amount] - Payment amount, optional
+   * @throws {Error} If string cannot be converted to number
+   * @author Brid9e
+   */
+  public open(amount?: number | string) {
     if (this.isOpen) return
 
     // Each time it opens, if custom payment methods haven't been set, restore to default (empty array)
@@ -1786,9 +1818,10 @@ class PaymentPanel extends HTMLElement {
     document.body.style.overflow = 'hidden'
 
     if (amount !== undefined) {
+      const numAmount = this.convertAmountToNumber(amount)
       const amountElement = this.shadow.querySelector('#amount')
       if (amountElement) {
-        amountElement.textContent = amount.toFixed(2)
+        amountElement.textContent = numAmount.toFixed(2)
       }
     }
 
@@ -1837,13 +1870,15 @@ class PaymentPanel extends HTMLElement {
   /**
    * Set payment amount
    * Updates payment amount displayed in panel
-   * @param {number} amount - Payment amount
+   * @param {number | string} amount - Payment amount
+   * @throws {Error} If string cannot be converted to number
    * @author Brid9e
    */
-  public setAmount(amount: number) {
+  public setAmount(amount: number | string) {
+    const numAmount = this.convertAmountToNumber(amount)
     const amountElement = this.shadow.querySelector('#amount')
     if (amountElement) {
-      amountElement.textContent = amount.toFixed(2)
+      amountElement.textContent = numAmount.toFixed(2)
     }
   }
 
