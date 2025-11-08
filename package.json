@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "packageManager": "pnpm@8.0.0",
+  "packageManager": "pnpm@9",
   "files": [
     "dist",
     "README.md"
