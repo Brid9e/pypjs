@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PYPJS ESM Example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+          Helvetica, Arial, sans-serif;
+        padding: 20px;
+        background-color: #f6f8fa;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #24292f;
+      }
+
+      .demo-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-section h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        color: #24292f;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        background-color: #238636;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 12px;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn:hover {
+        background-color: #2ea043;
+      }
+
+      .info {
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #57606a;
+        line-height: 1.6;
+      }
+
+      #eventInfo {
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #dafbe1;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #1a7f37;
+        word-break: break-all;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0d1117;
+        }
+
+        h1 {
+          color: #e6edf3;
+        }
+
+        .demo-section {
+          background: #161b22;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-section h2 {
+          color: #e6edf3;
+        }
+
+        .info {
+          background-color: #161b22;
+          color: #8b949e;
+        }
+
+        #eventInfo {
+          background-color: #1c2128;
+          color: #3fb950;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>PYPJS ESM Example</h1>
+
+      <div class="demo-section">
+        <h2>Basic Usage (ES Module)</h2>
+        <button class="btn" onclick="openPanel()">Open Payment Panel</button>
+        <div class="info">
+          This example demonstrates ESM import usage:<br />
+          <code>import pypjs from '../dist/index.esm.js'</code>
+        </div>
+        <div id="eventInfo"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import pypjs from '../dist/index.esm.js'
+
+      // Payment methods
+      const paymentMethods = [
+        { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+        { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+        { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+      ]
+
+      // Event handler
+      pypjs.on('confirm', (e) => {
+        const { method, amount, password } = e.detail
+        const info = document.getElementById('eventInfo')
+        let message = `Payment confirmed: Method=${method}, Amount=${amount}`
+        if (password) {
+          message += `, Password=${password}`
+        }
+        if (info) {
+          info.textContent = message
+        }
+        console.log('Payment:', method, amount, password)
+        pypjs.close()
+      })
+
+      pypjs.on('close', () => {
+        console.log('Panel closed')
+      })
+
+      // Open panel function
+      window.openPanel = function() {
+        pypjs.setPaymentMethods(paymentMethods, {
+          titleField: 'name',
+          subtitleField: 'desc',
+          iconField: 'icon',
+          valueField: 'id'
+        })
+        pypjs.open(99.99)
+      }
+    </script>
+  </body>
+</html>

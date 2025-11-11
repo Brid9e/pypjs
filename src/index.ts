@@ -1,6 +1,9 @@
 import PaymentPanel from './payment-panel'
 import type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
 
+// Build-time variable to control global mount (replaced by rollup plugin)
+declare const __ENABLE_GLOBAL_MOUNT__: boolean | undefined
+
 // Ensure custom element is registered
 if (typeof window !== 'undefined' && !customElements.get('payment-panel')) {
   customElements.define('payment-panel', PaymentPanel)
@@ -46,7 +49,7 @@ function getInstance(): PaymentPanel {
  * Provides global access interface for payment panel
  * @author Brid9e
  */
-const PaymentPanelAPI = {
+const pypjs = {
   /**
    * Open payment panel
    * @param {number | string} [amount] - Payment amount, optional
@@ -193,13 +196,6 @@ const PaymentPanelAPI = {
     return getInstance().getTheme()
   },
 
-  /**
-   * Reset to default configuration
-   * @author Brid9e
-   */
-  resetConfig() {
-    getInstance().resetConfig()
-  },
 
   /**
    * Set whether to allow confirm without payment methods
@@ -355,12 +351,12 @@ const PaymentPanelAPI = {
   }
 }
 
-// Mount to global
-if (typeof window !== 'undefined') {
-  (window as any).pypjs = PaymentPanelAPI
+// Mount to global (only for UMD build, not for ESM)
+// ESM builds should use import/export, not global variables
+if (typeof window !== 'undefined' && (typeof __ENABLE_GLOBAL_MOUNT__ === 'undefined' || __ENABLE_GLOBAL_MOUNT__ !== false)) {
+  (window as any).pypjs = pypjs
 }
 
 // Export
-export { PaymentPanelAPI }
 export type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
-export default PaymentPanelAPI
+export default pypjs

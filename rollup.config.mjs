@@ -1,6 +1,19 @@
 import typescript from '@rollup/plugin-typescript';
 import terser from '@rollup/plugin-terser';
 
+// Define plugin to replace __ENABLE_GLOBAL_MOUNT__
+// This plugin should run after TypeScript compilation
+const definePlugin = (enableGlobalMount) => ({
+  name: 'define',
+  transform(code, id) {
+    // Match the compiled JavaScript output
+    if (code.includes('__ENABLE_GLOBAL_MOUNT__')) {
+      return code.replace(/__ENABLE_GLOBAL_MOUNT__/g, String(enableGlobalMount));
+    }
+    return null;
+  }
+});
+
 const terserConfig = {
   compress: false, // 禁用压缩，只进行混淆
   mangle: {
@@ -33,6 +46,7 @@ export default [
         declaration: true,
         declarationDir: './dist'
       }),
+      definePlugin(true), // UMD 构建启用全局挂载（在 TypeScript 编译后替换）
       terser(terserConfig)
     ]
   },
@@ -50,6 +64,7 @@ export default [
         declaration: true,
         declarationDir: './dist'
       }),
+      definePlugin(false), // ESM 构建禁用全局挂载（在 TypeScript 编译后替换）
       terser(terserConfig)
     ]
   }

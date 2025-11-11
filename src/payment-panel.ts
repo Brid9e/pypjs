@@ -2223,7 +2223,7 @@ class PaymentPanel extends HTMLElement {
    * Resets all configuration options to default values
    * @author Brid9e
    */
-  public resetConfig() {
+  private resetConfig() {
     this.setConfig({})
     // Reset payment methods to default (setPaymentMethods will automatically set hasCustomPaymentMethods = false)
     this.setPaymentMethods()
