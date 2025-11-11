@@ -22,7 +22,8 @@ const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme' | 'headerTitle' 
   amountFont: '',
   textFont: '',
   language: 'en',
-  themeMode: 'auto'
+  themeMode: 'auto',
+  keyboardMapping: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 }
 
 /**
@@ -68,6 +69,7 @@ class PaymentPanel extends HTMLElement {
   private customI18n?: Partial<I18nTexts> // Custom i18n texts to override defaults
   private themeMode: 'light' | 'dark' | 'auto' = DEFAULT_CONFIG.themeMode as 'light' | 'dark' | 'auto'
   private systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null // System theme change listener
+  private keyboardMapping: string[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] // Keyboard character mapping for 0-9
 
   // Theme configuration
   private theme: PaymentPanelConfig['theme'] = {}
@@ -1081,9 +1083,12 @@ class PaymentPanel extends HTMLElement {
     const numberKeys = keyboard.querySelectorAll('.keyboard-key[data-key]')
     numberKeys.forEach(key => {
       key.addEventListener('click', () => {
-        const value = key.getAttribute('data-key')
-        if (value && this.currentPassword.length < this.passwordLength) {
-          this.currentPassword += value
+        const digit = key.getAttribute('data-key')
+        if (digit && this.currentPassword.length < this.passwordLength) {
+          // Use mapped value from keyboardMapping, fallback to original digit if mapping not available
+          const digitIndex = parseInt(digit, 10)
+          const mappedValue = this.keyboardMapping[digitIndex] || digit
+          this.currentPassword += mappedValue
           this.renderPasswordDots()
           this.checkPasswordComplete()
         }
@@ -1152,7 +1157,7 @@ class PaymentPanel extends HTMLElement {
 
     // Dispatch payment confirmation event
     this.dispatchEvent(
-      new CustomEvent('payment-confirm', {
+      new CustomEvent('confirm', {
         detail,
         bubbles: true,
         composed: true
@@ -1860,7 +1865,7 @@ class PaymentPanel extends HTMLElement {
 
     // Trigger close event
     this.dispatchEvent(
-      new CustomEvent('payment-close', {
+      new CustomEvent('close', {
         bubbles: true,
         composed: true
       })
@@ -2198,6 +2203,11 @@ class PaymentPanel extends HTMLElement {
       this.updateThemeMode()
     }
 
+    // Set keyboard mapping
+    if (config.keyboardMapping !== undefined) {
+      this.setKeyboardMapping(config.keyboardMapping)
+    }
+
     // Set theme
     if (config.theme !== undefined) {
       // setTheme method automatically handles empty object, resets to default
@@ -2390,6 +2400,35 @@ class PaymentPanel extends HTMLElement {
   public setThemeMode(mode: 'light' | 'dark' | 'auto') {
     this.themeMode = mode
     this.updateThemeMode()
+  }
+
+  /**
+   * Set keyboard character mapping
+   * Sets custom character mapping for password keyboard (0-9)
+   * @param {string[]} mapping - Array of 10 strings corresponding to digits 0-9
+   * @throws {Error} If mapping array length is not 10
+   * @author Brid9e
+   */
+  public setKeyboardMapping(mapping: string[]) {
+    if (!Array.isArray(mapping) || mapping.length !== 10) {
+      throw new Error('Keyboard mapping must be an array of 10 strings (for digits 0-9)')
+    }
+    this.keyboardMapping = [...mapping] // Create a copy to avoid external modification
+    // If password section is visible, re-render keyboard
+    const passwordSection = this.shadow.querySelector('#passwordSection') as HTMLElement
+    if (passwordSection && passwordSection.style.display !== 'none') {
+      // Re-render the entire component to update keyboard
+      this.render()
+      this.setupEventListeners()
+      this.initPasswordInput()
+      this.updatePasswordUI()
+      this.updatePaymentMethodsVisibility()
+      this.updateAmountStyles()
+      this.updateDragHandleVisibility()
+      this.updateI18nTexts()
+      this.renderPaymentMethods()
+      this.updateHeaderTitle()
+    }
   }
 
   /**

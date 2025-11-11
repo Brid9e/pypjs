@@ -410,13 +410,13 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
-        pypjs.on('payment-close', eventCloseHandler)
+        pypjs.on('confirm', eventConfirmHandler)
+        pypjs.on('close', eventCloseHandler)
 
         pypjs.open(99.99)
       }
 
-      // Configuration example: Disable swipe + Password input
+      // Configuration example: Disable swipe + Password input + Keyboard mapping
       function openPanelWithConfig() {
         pypjs.setConfig({
           allowSwipeToClose: false,
@@ -425,12 +425,14 @@
           passwordLength: 6,
           closeThreshold: 150,
           closeThresholdPercent: 0.4,
-          velocityThreshold: 0.8
+          velocityThreshold: 0.8,
+          // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+          keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
         })
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -497,7 +499,7 @@
           }
         )
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
 
@@ -529,7 +531,7 @@
           }
         ])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -561,7 +563,7 @@
           }
         ])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -592,7 +594,7 @@
           }
         ])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -630,7 +632,7 @@
           }
         ])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
 
@@ -655,7 +657,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
       // Custom title example
@@ -666,7 +668,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(88.88)
       }
 
@@ -678,7 +680,7 @@
 
         pypjs.setPaymentMethods([])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(99.99)
       }
 
@@ -687,12 +689,14 @@
         pypjs.setConfig({
           allowConfirmWithoutMethods: allow,
           enablePassword: true,
-          emptyStateText: 'No payment methods available'
+          emptyStateText: 'No payment methods available',
+          // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+          keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
         })
 
         pypjs.setPaymentMethods([])
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -700,13 +704,15 @@
       function openPanelHidePaymentMethods(hide, enablePassword) {
         pypjs.setConfig({
           hidePaymentMethods: hide,
-          enablePassword: enablePassword || false
+          enablePassword: enablePassword || false,
+          // If password input is enabled, add keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+          keyboardMapping: enablePassword ? ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'] : undefined
         })
 
         // Set payment methods even when hidden, to demonstrate the feature
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
 
@@ -718,7 +724,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -732,7 +738,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
 
@@ -744,7 +750,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
 
@@ -762,7 +768,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(299.99)
       }
 
@@ -774,7 +780,7 @@
 
         pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
 
-        pypjs.on('payment-confirm', eventConfirmHandler)
+        pypjs.on('confirm', eventConfirmHandler)
         pypjs.open(199.99)
       }
     </script>

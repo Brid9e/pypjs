@@ -131,6 +131,9 @@ export interface PaymentPanelConfig {
   /** Theme mode: 'light' | 'dark' | 'auto' (follow system), default "auto" */
   themeMode?: 'light' | 'dark' | 'auto'
 
+  /** Keyboard character mapping for password input, array of 10 strings corresponding to digits 0-9, default ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] */
+  keyboardMapping?: string[]
+
   /** Theme configuration */
   theme?: ThemeConfig
 }

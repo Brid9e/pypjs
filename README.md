@@ -10,11 +10,9 @@ A simple, easy-to-use, framework-agnostic payment panel component.
 
 ```bash
 npm install pypjs
-# or
-pnpm add pypjs
-# or
-yarn add pypjs
 ```
+
+Or use other package managers (pnpm, yarn, etc.)
 
 ### 2. Import the Component
 
@@ -36,35 +34,18 @@ pypjs.setConfig({ headerTitle: 'Payment' })
 
 After including, the global `pypjs` object is available for use.
 
-### 3. Open Payment Panel
+### 3. Basic Usage
 
 ```javascript
-// Basic usage
-pypjs.open()
-
-// Open with amount (supports number or string)
-pypjs.open(99.99)
-pypjs.open("99.99") // String will be converted to number
-```
-
-### 4. Close Payment Panel
-
-```javascript
+// Open/close panel
+pypjs.open(99.99) // Supports number or string
 pypjs.close()
+
+// Set amount
+pypjs.setAmount(199.0) // Supports number or string
 ```
 
-### 5. Set Amount
-
-```javascript
-// Supports number or string
-pypjs.setAmount(199.0)
-pypjs.setAmount("199.0") // String will be converted to number
-
-// Invalid string will throw an error
-pypjs.setAmount("abc") // Error: Invalid amount: "abc" cannot be converted to number
-```
-
-### 6. Custom Payment Methods
+### 4. Custom Payment Methods
 
 #### Basic Usage
 
@@ -86,8 +67,6 @@ pypjs.setPaymentMethods(
 ```
 
 #### Two-Level Grouping
-
-Supports two-level grouping structure. Click group headers to expand/collapse items:
 
 ```javascript
 pypjs.setPaymentMethods(
@@ -117,131 +96,45 @@ pypjs.setPaymentMethods(
 )
 ```
 
-#### Icon Types
-
-Supports three icon types: Image URL, String (emoji/character), or default SVG icon.
-
-### 7. Unified Configuration
+### 5. Configuration
 
 ```javascript
-// Use setConfig to configure all options
 pypjs.setConfig({
-  allowSwipeToClose: false, // Allow swipe to close (hides drag handle when false)
-  closeOnOverlayClick: false, // Close on overlay click
-  enablePassword: true, // Enable password input
-  passwordLength: 6, // Password length (default 6)
-  headerTitle: 'Confirm Payment', // Header title (optional, defaults to i18n)
-  amountLabel: 'Payment Amount', // Amount label (optional, defaults to i18n)
-  iconDisplay: 'always', // Icon display mode: 'always' | 'never' | 'auto' (default 'always')
-  closeThreshold: 150, // Close distance threshold (pixels)
-  closeThresholdPercent: 0.4, // Close distance threshold (percentage, 0-1)
-  velocityThreshold: 0.8, // Velocity threshold (pixels/ms)
-  allowConfirmWithoutMethods: true, // Allow confirm when no payment methods (default true)
-  hidePaymentMethods: false, // Hide payment methods section (default false)
-  amountAlign: 'left', // Amount alignment: 'left' | 'center' | 'right' (default 'left')
-  amountFont: 'Arial, sans-serif', // Amount font (optional)
-  textFont: 'Arial, sans-serif', // Text font for other elements (optional)
-  language: 'en', // Language setting: 'zh' | 'en' | 'ja' | 'ru' (default 'en')
-  i18n: {
-    // Custom i18n texts (partial override, optional)
-    headerTitle: 'Custom Title',
-    confirmButton: 'Confirm'
-  },
-  themeMode: 'auto', // Theme mode: 'light' | 'dark' | 'auto' (default 'auto')
+  allowSwipeToClose: false,
+  closeOnOverlayClick: false,
+  enablePassword: true,
+  passwordLength: 6,
+  language: 'zh',
+  themeMode: 'auto',
+  keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
   theme: {
-    // Theme configuration
     primaryColor: '#ff4d4f',
-    primaryHoverColor: '#ff7875',
-    overlayColor: 'rgba(0, 0, 0, 0.6)',
     panelBgLight: '#ffffff',
-    panelBgDark: '#2d2d2d',
-    textPrimaryLight: '#24292f',
-    textPrimaryDark: '#e0e0e0'
+    panelBgDark: '#2d2d2d'
   }
 })
 ```
 
-**Note**: In `setConfig`, undefined values will revert to defaults.
-
-### 8. Individual Configuration Methods
+### 6. Events
 
 ```javascript
-pypjs.setHeaderTitle('Confirm Payment')
-pypjs.setAmountLabel('Payment Amount')
-pypjs.setEnablePassword(true)
-pypjs.setPasswordLength(6)
-pypjs.setLanguage('zh')
-pypjs.setThemeMode('dark') // 'light' | 'dark' | 'auto'
-pypjs.setTheme({ primaryColor: '#ff4d4f' })
-pypjs.resetConfig()
-// ... and more
-```
-
-### 9. Event Listeners
-
-```javascript
-// Listen to payment confirm event
-pypjs.on('payment-confirm', (e) => {
-  const { method, amount, methodData } = e.detail
-  console.log('Payment method:', method)
-  console.log('Amount:', amount)
-  console.log('Full data:', methodData)
+pypjs.on('confirm', (e) => {
+  const { method, amount, password } = e.detail
+  console.log('Payment:', method, amount, password)
 })
 
-// Listen to close event
-pypjs.on('payment-close', () => {
-  console.log('Payment panel closed')
+pypjs.on('close', () => {
+  console.log('Panel closed')
 })
-
-// Remove event listener
-pypjs.off('payment-confirm', handler)
 ```
 
 ## Features
 
-### Icon Display
-
-Icon display modes: `always` (default), `never`, `auto`. Supports image URL, string (emoji/character), or default SVG icon.
-
-### Internationalization (i18n)
-
-Supports Chinese (zh), English (en), Japanese (ja), and Russian (ru). You can partially override default texts using the `i18n` configuration.
-
-```javascript
-pypjs.setConfig({
-  language: 'zh',
-  i18n: {
-    headerTitle: 'Custom Title',
-    confirmButton: 'Confirm Payment'
-  }
-})
-```
-
-### Amount Alignment and Fonts
-
-Supports custom amount alignment (`left` | `center` | `right`) and fonts for amount and text elements.
-
-### Payment Methods Control
-
-- `allowConfirmWithoutMethods`: Control whether to allow confirmation when no payment methods (default `true`)
-- `hidePaymentMethods`: Hide payment methods section, only show amount and confirm button/password input (default `false`)
-
-### Theme
-
-Supports theme mode configuration: `light`, `dark`, or `auto` (follow system). Default is `auto`. Automatically detects system theme when set to `auto`. Supports customizable colors and gradient backgrounds.
-
-```javascript
-// Set theme mode
-pypjs.setThemeMode('dark') // 'light' | 'dark' | 'auto'
-
-// Set theme colors
-pypjs.setTheme({
-  primaryColor: '#ff4d4f',
-  primaryHoverColor: '#ff7875',
-  panelBgLight: 'linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%)',
-  panelBgDark: '#1a0f0f'
-})
-```
+- **i18n**: Supports zh, en, ja, ru with partial override
+- **Theme**: `light` | `dark` | `auto` (follow system), customizable colors and gradients
+- **Keyboard Mapping**: Map digits 0-9 to custom characters (keyboard displays digits, input uses mapped values)
+- **Icon Display**: `always` | `never` | `auto`, supports image URL, emoji, or default SVG
+- **Amount Alignment**: `left` | `center` | `right` with custom fonts
 
 ## API Reference
 
@@ -264,95 +157,25 @@ pypjs.setTheme({
     - `valueField`: Value field name (default 'value' or 'id')
 - `pypjs.getSelectedMethod()` - Get currently selected payment method
 
-#### Unified Configuration
+#### Configuration
 
-- `pypjs.setConfig(config: pypjsConfig)` - Configure all options
+- `pypjs.setConfig(config)` - Configure all options
+- `pypjs.resetConfig()` - Reset to defaults
 
-  - `allowSwipeToClose?: boolean` - Allow swipe to close (default true, hides drag handle when false)
-  - `closeOnOverlayClick?: boolean` - Close on overlay click (default true)
-  - `enablePassword?: boolean` - Enable password input (default false)
-  - `passwordLength?: number` - Password length (default 6, range 4-12)
-  - `headerTitle?: string` - Header title text (optional, defaults to i18n)
-  - `amountLabel?: string` - Amount label text (optional, defaults to i18n)
-  - `iconDisplay?: 'always' | 'never' | 'auto'` - Icon display mode (default "always")
-    - `always`: Always show icon area
-    - `never`: Never show icon area
-    - `auto`: Show when icon value exists, hide when not
-  - `closeThreshold?: number` - Close distance threshold (pixels, default 100)
-  - `closeThresholdPercent?: number` - Close distance threshold (percentage, default 0.3)
-  - `velocityThreshold?: number` - Velocity threshold (pixels/ms, default 0.5)
-  - `allowConfirmWithoutMethods?: boolean` - Allow confirm when no payment methods (default true)
-  - `hidePaymentMethods?: boolean` - Hide payment methods section (default false)
-  - `amountAlign?: 'left' | 'center' | 'right'` - Amount alignment (default 'left')
-  - `amountFont?: string` - Amount font (optional, e.g. "Arial, sans-serif")
-  - `textFont?: string` - Text font for other elements (optional, e.g. "Arial, sans-serif")
-  - `language?: 'zh' | 'en' | 'ja' | 'ru'` - Language setting (default 'en')
-  - `i18n?: Partial<I18nTexts>` - Custom i18n texts (partial override, optional)
-    - `headerTitle?: string` - Header title text
-    - `amountLabel?: string` - Amount label text
-    - `paymentMethodsTitle?: string` - Payment methods title text
-    - `passwordLabel?: string` - Password label text
-    - `cancelButton?: string` - Cancel button text
-    - `confirmButton?: string` - Confirm button text
-    - `emptyStateText?: string` - Empty state text
-    - `closeAriaLabel?: string` - Close button aria label
-  - `themeMode?: 'light' | 'dark' | 'auto'` - Theme mode (default 'auto')
-  - `theme?: ThemeConfig` - Theme configuration object
-    - `primaryColor?: string` - Primary color (default "#238636")
-    - `primaryHoverColor?: string` - Primary hover color (default "#2ea043")
-    - `overlayColor?: string` - Overlay color (default "rgba(0, 0, 0, 0.5)")
-    - `panelBgLight?: string` - Panel background color in light mode (default "#ffffff", supports gradients)
-    - `panelBgDark?: string` - Panel background color in dark mode (default "#2d2d2d", supports gradients)
-    - `textPrimaryLight?: string` - Primary text color in light mode (default "#24292f")
-    - `textPrimaryDark?: string` - Primary text color in dark mode (default "#e0e0e0")
-    - `textSecondaryLight?: string` - Secondary text color in light mode (default "#57606a")
-    - `textSecondaryDark?: string` - Secondary text color in dark mode (default "#999999")
-
-  **Note**: If a configuration item is not provided (undefined), it will automatically revert to the default value.
-
-- `pypjs.resetConfig()` - Reset all configurations to default values
-
-#### Individual Configuration Methods
-
-- `pypjs.setHeaderTitle(title?: string)` - Set header title text (optional, defaults to i18n if not provided)
-- `pypjs.setAmountLabel(label?: string)` - Set amount label text (optional, defaults to i18n if not provided)
-- `pypjs.setCloseThreshold(threshold: number)` - Set close distance threshold (pixels)
-- `pypjs.setCloseThresholdPercent(percent: number)` - Set close distance threshold (percentage, 0-1)
-- `pypjs.setVelocityThreshold(threshold: number)` - Set velocity threshold (pixels/ms)
-- `pypjs.setCloseOnOverlayClick(close: boolean)` - Set whether to close on overlay click
-- `pypjs.setEnablePassword(enable: boolean)` - Set whether to enable password input
-- `pypjs.setPasswordLength(length: number)` - Set password length (4-12 digits)
-- `pypjs.setAllowConfirmWithoutMethods(allow: boolean)` - Set whether to allow confirm without payment methods
-- `pypjs.setHidePaymentMethods(hide: boolean)` - Set whether to hide payment methods section
-- `pypjs.setAmountAlign(align: 'left' | 'center' | 'right')` - Set amount alignment
-- `pypjs.setAmountFont(font: string)` - Set amount font
-- `pypjs.setTextFont(font: string)` - Set text font
-- `pypjs.setLanguage(lang: 'zh' | 'en' | 'ja' | 'ru')` - Set language
-- `pypjs.setI18n(i18n: Partial<I18nTexts>)` - Set custom i18n texts (partial override)
-- `pypjs.setThemeMode(mode: 'light' | 'dark' | 'auto')` - Set theme mode
-- `pypjs.setTheme(theme: ThemeConfig)` - Set theme configuration
-- `pypjs.getTheme()` - Get current theme configuration
+Main config options:
+- `allowSwipeToClose`, `closeOnOverlayClick`, `enablePassword`, `passwordLength`
+- `language`, `i18n`, `themeMode`, `theme`, `keyboardMapping`
+- `amountAlign`, `amountFont`, `textFont`, `iconDisplay`
+- `allowConfirmWithoutMethods`, `hidePaymentMethods`
 
 #### Events
 
-- `pypjs.on(event, handler)` - Listen to events (auto-deduplication, same handler only added once)
-- `pypjs.off(event, handler)` - Remove event listener
-
-### Events
-
-- `payment-confirm` - Triggered when payment is confirmed
-  - `method`: Selected payment method value
-  - `methodData`: Complete payment method object
-  - `amount`: Payment amount
-  - `password`: Password (if password input is enabled)
-- `payment-close` - Triggered when payment panel is closed
+- `pypjs.on('confirm', handler)` - `{ method, amount, password, methodData }`
+- `pypjs.on('close', handler)`
 
 ## Browser Support
 
-- Chrome/Edge (latest)
-- Firefox (latest)
-- Safari (latest)
-- Mobile browsers
+Modern browsers (Chrome, Firefox, Safari, Edge) and mobile browsers.
 
 ## License
 

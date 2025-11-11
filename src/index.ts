@@ -291,12 +291,23 @@ const PaymentPanelAPI = {
   },
 
   /**
+   * Set keyboard character mapping
+   * Sets custom character mapping for password keyboard (0-9)
+   * @param {string[]} mapping - Array of 10 strings corresponding to digits 0-9
+   * @throws {Error} If mapping array length is not 10
+   * @author Brid9e
+   */
+  setKeyboardMapping(mapping: string[]) {
+    getInstance().setKeyboardMapping(mapping)
+  },
+
+  /**
    * Listen to events (auto-deduplication, same handler will only be added once)
-   * @param {'payment-confirm' | 'payment-close'} event - Event name
+   * @param {'confirm' | 'close'} event - Event name
    * @param {(e: CustomEvent) => void} handler - Event handler function
    * @author Brid9e
    */
-  on(event: 'payment-confirm' | 'payment-close', handler: (e: CustomEvent) => void) {
+  on(event: 'confirm' | 'close', handler: (e: CustomEvent) => void) {
     const instance = getInstance()
     // Remove first to avoid duplicate addition
     instance.removeEventListener(event, handler as EventListener)
@@ -306,20 +317,20 @@ const PaymentPanelAPI = {
 
   /**
    * Remove event listener
-   * @param {'payment-confirm' | 'payment-close'} event - Event name
+   * @param {'confirm' | 'close'} event - Event name
    * @param {(e: CustomEvent) => void} handler - Event handler function
    * @author Brid9e
    */
-  off(event: 'payment-confirm' | 'payment-close', handler: (e: CustomEvent) => void) {
+  off(event: 'confirm' | 'close', handler: (e: CustomEvent) => void) {
     getInstance().removeEventListener(event, handler as EventListener)
   },
 
   /**
    * Remove all event listeners
-   * @param {'payment-confirm' | 'payment-close'} [event] - Event name, if not specified removes all event listeners
+   * @param {'confirm' | 'close'} [event] - Event name, if not specified removes all event listeners
    * @author Brid9e
    */
-  removeAllListeners(event?: 'payment-confirm' | 'payment-close') {
+  removeAllListeners(event?: 'confirm' | 'close') {
     const instance = getInstance()
     if (event) {
       // Clone element to remove all listeners (simple method)
