@@ -1,6 +1,6 @@
 {
   "name": "pypjs",
-  "version": "0.1.8",
+  "version": "0.1.8.alpha.1",
   "description": "A simple, easy-to-use, framework-agnostic payment panel component",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
