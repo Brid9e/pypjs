@@ -1,788 +1,1020 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PYPJS Examples</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
 
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>PYPJS Examples</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
+        Helvetica, Arial, sans-serif;
+      padding: 20px;
+      background-color: #f6f8fa;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #24292f;
+    }
+
+    .demo-section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #24292f;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      background-color: #238636;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 12px;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: #2ea043;
+    }
+
+    .btn-secondary {
+      background-color: #f6f8fa;
+      color: #24292f;
+    }
+
+    .btn-secondary:hover {
+      background-color: #f3f4f6;
+    }
+
+    .info {
+      margin-top: 16px;
+      padding: 12px;
+      background-color: #f6f8fa;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #57606a;
+      line-height: 1.6;
+    }
+
+    @media (prefers-color-scheme: dark) {
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
-          Helvetica, Arial, sans-serif;
-        padding: 20px;
-        background-color: #f6f8fa;
-        min-height: 100vh;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 40px 20px;
+        background-color: #0d1117;
       }
 
       h1 {
-        text-align: center;
-        margin-bottom: 40px;
-        color: #24292f;
+        color: #e6edf3;
       }
 
       .demo-section {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        background: #161b22;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
       .demo-section h2 {
-        font-size: 18px;
-        margin-bottom: 16px;
-        color: #24292f;
-      }
-
-      .btn {
-        padding: 12px 24px;
-        background-color: #238636;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        width: 100%;
-        margin-bottom: 12px;
-        transition: background-color 0.2s ease;
-      }
-
-      .btn:hover {
-        background-color: #2ea043;
+        color: #e6edf3;
       }
 
       .btn-secondary {
-        background-color: #f6f8fa;
-        color: #24292f;
+        background-color: #21262d;
+        color: #e6edf3;
       }
 
       .btn-secondary:hover {
-        background-color: #f3f4f6;
+        background-color: #30363d;
       }
 
       .info {
-        margin-top: 16px;
-        padding: 12px;
-        background-color: #f6f8fa;
-        border-radius: 6px;
-        font-size: 14px;
-        color: #57606a;
-        line-height: 1.6;
+        background-color: #21262d;
+        color: #8b949e;
       }
+    }
+  </style>
+</head>
 
-      @media (prefers-color-scheme: dark) {
-        body {
-          background-color: #0d1117;
-        }
+<body>
+  <div class="container">
+    <h1>PYPJS Examples</h1>
 
-        h1 {
-          color: #e6edf3;
-        }
-
-        .demo-section {
-          background: #161b22;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .demo-section h2 {
-          color: #e6edf3;
-        }
-
-        .btn-secondary {
-          background-color: #21262d;
-          color: #e6edf3;
-        }
-
-        .btn-secondary:hover {
-          background-color: #30363d;
-        }
-
-        .info {
-          background-color: #21262d;
-          color: #8b949e;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>PYPJS Examples</h1>
-
-      <!-- Basic Usage -->
-      <div class="demo-section">
-        <h2>Basic Usage</h2>
-        <button class="btn" onclick="openBasicPanel()">
-          Open Payment Panel
-        </button>
-        <div class="info" id="eventInfo">
-          Event information will be displayed here
-        </div>
-      </div>
-
-      <!-- Configuration -->
-      <div class="demo-section">
-        <h2>Configuration: Disable Swipe + Password Input</h2>
-        <button class="btn" onclick="openPanelWithConfig()">
-          Open Payment Panel
-        </button>
-        <div class="info">
-          Use setConfig() to configure all options:<br />
-          • allowSwipeToClose: Allow swipe to close (hides drag handle when
-          false)<br />
-          • closeOnOverlayClick: Close on overlay click<br />
-          • enablePassword: Enable password input<br />
-          • passwordLength: Password length (default 6)<br />
-          • headerTitle: Header title text<br />
-          • closeThreshold: Close distance threshold (pixels)<br />
-          • closeThresholdPercent: Close distance threshold (percentage)<br />
-          • velocityThreshold: Velocity threshold (pixels/ms)
-        </div>
-      </div>
-
-      <!-- Custom Payment Methods -->
-      <div class="demo-section">
-        <h2>Custom Payment Methods + Two-Level Grouping</h2>
-        <button class="btn" onclick="openPanelWithCustomMethods()">
-          Open Payment Panel
-        </button>
-        <div class="info">
-          Support custom payment methods list with two-level grouping structure.
-          Click group headers to expand/collapse items.
-        </div>
-      </div>
-
-      <!-- Icon Display Modes -->
-      <div class="demo-section">
-        <h2>Icon Display Mode: always (default)</h2>
-        <button class="btn" onclick="openPanelWithAlwaysMode()">
-          Always Show Icons
-        </button>
-        <div class="info">
-          Use iconDisplay: 'always', icon area is always shown<br />
-          • Image URL: Display image (object-fit: cover)<br />
-          • String: Display first character<br />
-          • No icon: Display default SVG icon
-        </div>
-      </div>
-
-      <div class="demo-section">
-        <h2>Icon Display Mode: auto</h2>
-        <button class="btn" onclick="openPanelWithAutoMode()">
-          Show When Icon Exists
-        </button>
-        <div class="info">
-          Use iconDisplay: 'auto', icon area is shown only when icon value
-          exists<br />
-          • Has icon value: Display normally (image/string/default icon)<br />
-          • No icon value: Hide icon area
-        </div>
-      </div>
-
-      <div class="demo-section">
-        <h2>Icon Display Mode: never</h2>
-        <button class="btn" onclick="openPanelWithNeverMode()">
-          Never Show Icons
-        </button>
-        <div class="info">
-          Use iconDisplay: 'never', icon area is never shown
-        </div>
-      </div>
-
-      <div class="demo-section">
-        <h2>Mixed Icons: Image URL + String + No Icon</h2>
-        <button class="btn btn-secondary" onclick="openPanelWithMixedIcons()">
-          Open Mixed Icons Example
-        </button>
-        <div class="info">
-          Display different types of icons:<br />
-          • Image URL (WeChat Pay, Alipay icons)<br />
-          • String (display first character)<br />
-          • No icon (display default SVG)
-        </div>
-      </div>
-
-      <!-- Custom Theme -->
-      <div class="demo-section">
-        <h2>Custom Theme</h2>
-        <button class="btn" onclick="openPanelWithRedTheme()">
-          Open Payment Panel (Gradient Theme)
-        </button>
-        <div class="info">
-          Use setTheme() to customize theme colors:<br />
-          • primaryColor: Primary color (for buttons, selected state, etc.)<br />
-          • primaryHoverColor: Primary hover color<br />
-          • overlayColor: Overlay color<br />
-          • panelBgLight: Panel background in light mode (supports gradients)<br />
-          • panelBgDark: Panel background in dark mode (supports gradients)<br />
-          • textPrimaryLight: Primary text color in light mode<br />
-          • textPrimaryDark: Primary text color in dark mode<br />
-          • textSecondaryLight: Secondary text color in light mode<br />
-          • textSecondaryDark: Secondary text color in dark mode<br />
-          <br />
-          You can also set theme via theme property in setConfig()
-        </div>
-      </div>
-
-      <!-- Custom Title -->
-      <div class="demo-section">
-        <h2>Custom Title</h2>
-        <button class="btn" onclick="openPanelWithCustomTitle()">
-          Open Payment Panel
-        </button>
-        <div class="info">
-          Use setConfig() to set title, or use setHeaderTitle() method to set
-          title separately
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="demo-section">
-        <h2>Empty State</h2>
-        <button class="btn btn-secondary" onclick="openPanelWithEmptyState()">
-          Open Empty State Example
-        </button>
-        <div class="info">
-          When payment methods are empty, display empty state text. You can
-          customize the empty state text via setConfig() or setEmptyStateText().
-        </div>
-      </div>
-
-      <!-- Allow Confirm Without Methods -->
-      <div class="demo-section">
-        <h2>Allow Confirm Without Payment Methods</h2>
-        <button class="btn" onclick="openPanelAllowConfirmWithoutMethods(true)">
-          Allow Confirm (Default)
-        </button>
-        <button class="btn btn-secondary" onclick="openPanelAllowConfirmWithoutMethods(false)">
-          Disallow Confirm
-        </button>
-        <div class="info">
-          Control whether to show password input/keyboard and confirm buttons when no payment methods are available.<br />
-          • allowConfirmWithoutMethods: true (default) - Show password input and confirm buttons normally<br />
-          • allowConfirmWithoutMethods: false - Hide password input and confirm buttons, prevent payment confirmation event
-        </div>
-      </div>
-
-      <!-- Hide Payment Methods -->
-      <div class="demo-section">
-        <h2>Hide Payment Methods Section</h2>
-        <button class="btn" onclick="openPanelHidePaymentMethods(true, false)">
-          Hide Payment Methods (with Confirm Button)
-        </button>
-        <button class="btn" onclick="openPanelHidePaymentMethods(true, true)">
-          Hide Payment Methods (with Password Input)
-        </button>
-        <button class="btn btn-secondary" onclick="openPanelHidePaymentMethods(false, false)">
-          Show Payment Methods (Default)
-        </button>
-        <div class="info">
-          Control whether to hide the payment methods section, only show amount and confirm button/password input.<br />
-          • hidePaymentMethods: true - Hide payment methods section, only show amount and confirm button/password input<br />
-          • hidePaymentMethods: false (default) - Show payment methods section normally
-        </div>
-      </div>
-
-      <!-- Amount Alignment and Fonts -->
-      <div class="demo-section">
-        <h2>Amount Alignment and Fonts</h2>
-        <button class="btn" onclick="openPanelWithAmountAlign('left')">
-          Amount Left Aligned (Default)
-        </button>
-        <button class="btn" onclick="openPanelWithAmountAlign('center')">
-          Amount Center Aligned
-        </button>
-        <button class="btn" onclick="openPanelWithAmountAlign('right')">
-          Amount Right Aligned
-        </button>
-        <button class="btn btn-secondary" onclick="openPanelWithCustomFonts()">
-          Custom Fonts
-        </button>
-        <div class="info">
-          Control amount alignment and fonts:<br />
-          • amountAlign: 'left' | 'center' | 'right' (default: 'left') - Amount text alignment<br />
-          • amountFont: string - Font family for amount value, e.g. "Arial, sans-serif"<br />
-          • textFont: string - Font family for other text elements, e.g. "Helvetica, sans-serif"
-        </div>
-      </div>
-
-      <!-- Language and Custom i18n -->
-      <div class="demo-section">
-        <h2>Language and Custom i18n</h2>
-        <button class="btn" onclick="openPanelWithLanguage('zh')">
-          Chinese (中文)
-        </button>
-        <button class="btn" onclick="openPanelWithLanguage('ja')">
-          Japanese (日本語)
-        </button>
-        <button class="btn" onclick="openPanelWithLanguage('ru')">
-          Russian (Русский)
-        </button>
-        <button class="btn btn-secondary" onclick="openPanelWithCustomI18n()">
-          Custom i18n (Partial Override)
-        </button>
-        <div class="info">
-          Control language and custom i18n texts:<br />
-          • language: 'zh' | 'en' | 'ja' | 'ru' (default: 'en') - Set language for all texts<br />
-          • i18n: Partial&lt;I18nTexts&gt; - Custom i18n texts to override defaults, partial override supported<br />
-          • Only set the fields you want to customize, others will use default translations
-        </div>
-      </div>
-
-      <!-- Theme Mode -->
-      <div class="demo-section">
-        <h2>Theme Mode</h2>
-        <button class="btn" onclick="openPanelWithThemeMode('light')">
-          Light Mode
-        </button>
-        <button class="btn" onclick="openPanelWithThemeMode('dark')">
-          Dark Mode
-        </button>
-        <button class="btn" onclick="openPanelWithThemeMode('auto')">
-          Auto (Follow System)
-        </button>
-        <div class="info">
-          Control theme mode:<br />
-          • themeMode: 'light' | 'dark' | 'auto' (default: 'auto') - Set theme mode<br />
-          • 'light': Force light theme<br />
-          • 'dark': Force dark theme<br />
-          • 'auto': Follow system theme (automatically detects and responds to system theme changes)
-        </div>
+    <!-- Basic Usage -->
+    <div class="demo-section">
+      <h2>Basic Usage</h2>
+      <button
+        class="btn"
+        onclick="openBasicPanel()"
+      >
+        Open Payment Panel
+      </button>
+      <div
+        class="info"
+        id="eventInfo"
+      >
+        Event information will be displayed here
       </div>
     </div>
 
-    <!-- Include the bundled component -->
-    <script src="../dist/index.js"></script>
+    <!-- Configuration -->
+    <div class="demo-section">
+      <h2>Configuration: Disable Swipe + Password Input</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithConfig()"
+      >
+        Open Payment Panel
+      </button>
+      <div class="info">
+        Use setConfig() to configure all options:<br />
+        • allowSwipeToClose: Allow swipe to close (hides drag handle when
+        false)<br />
+        • closeOnOverlayClick: Close on overlay click<br />
+        • enablePassword: Enable password input<br />
+        • passwordLength: Password length (default 6)<br />
+        • headerTitle: Header title text<br />
+        • closeThreshold: Close distance threshold (pixels)<br />
+        • closeThresholdPercent: Close distance threshold (percentage)<br />
+        • velocityThreshold: Velocity threshold (pixels/ms)
+      </div>
+    </div>
 
-    <script>
-      // Common payment methods list for reuse
-      const commonPaymentMethods = [
-        { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
-        { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
-        { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
-      ]
+    <!-- Custom Selection Sections -->
+    <div class="demo-section">
+      <h2>Custom Selection Sections (Single/Multiple Selection)</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithSelectionSections()"
+      >
+        Open Selection Panel
+      </button>
+      <div class="info">
+        Use the new setSelectionSections() API to support multiple custom selection sections.<br />
+        • Each section selects independently<br />
+        • Set multiple: true/false for each section to control single/multiple selection<br />
+        • Set key property to customize field names in result (recommended to use English keys instead of localized
+        strings)<br />
+        • Single mode: Shows circular radio icon, defaults to first item<br />
+        • Use defaultValue to specify default selection<br />
+        • Multiple mode: Shows square checkbox, allows selecting multiple items<br />
+        • Get all selections from all sections on submit (using key or numeric index as field names)
+      </div>
+    </div>
 
-      const commonPaymentMethodsFieldMapping = {
+    <!-- Legacy Payment Methods (for backward compatibility) -->
+    <div class="demo-section">
+      <h2>Legacy Payment Methods + Two-Level Grouping (Backward Compatible)</h2>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelWithCustomMethods()"
+      >
+        Open Payment Panel
+      </button>
+      <div class="info">
+        The legacy setPaymentMethods() API is still available with two-level grouping structure.
+        Click group headers to expand/collapse items.
+      </div>
+    </div>
+
+    <!-- Icon Display Modes -->
+    <div class="demo-section">
+      <h2>Icon Display Mode: always (default)</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithAlwaysMode()"
+      >
+        Always Show Icons
+      </button>
+      <div class="info">
+        Use iconDisplay: 'always', icon area is always shown<br />
+        • Image URL: Display image (object-fit: cover)<br />
+        • String: Display first character<br />
+        • No icon: Display default SVG icon
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>Icon Display Mode: auto</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithAutoMode()"
+      >
+        Show When Icon Exists
+      </button>
+      <div class="info">
+        Use iconDisplay: 'auto', icon area is shown only when icon value
+        exists<br />
+        • Has icon value: Display normally (image/string/default icon)<br />
+        • No icon value: Hide icon area
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>Icon Display Mode: never</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithNeverMode()"
+      >
+        Never Show Icons
+      </button>
+      <div class="info">
+        Use iconDisplay: 'never', icon area is never shown
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>Mixed Icons: Image URL + String + No Icon</h2>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelWithMixedIcons()"
+      >
+        Open Mixed Icons Example
+      </button>
+      <div class="info">
+        Display different types of icons:<br />
+        • Image URL (WeChat Pay, Alipay icons)<br />
+        • String (display first character)<br />
+        • No icon (display default SVG)
+      </div>
+    </div>
+
+    <!-- Custom Theme -->
+    <div class="demo-section">
+      <h2>Custom Theme</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithRedTheme()"
+      >
+        Open Payment Panel (Gradient Theme)
+      </button>
+      <div class="info">
+        Use setTheme() to customize theme colors:<br />
+        • primaryColor: Primary color (for buttons, selected state, etc.)<br />
+        • primaryHoverColor: Primary hover color<br />
+        • overlayColor: Overlay color<br />
+        • panelBgLight: Panel background in light mode (supports gradients)<br />
+        • panelBgDark: Panel background in dark mode (supports gradients)<br />
+        • textPrimaryLight: Primary text color in light mode<br />
+        • textPrimaryDark: Primary text color in dark mode<br />
+        • textSecondaryLight: Secondary text color in light mode<br />
+        • textSecondaryDark: Secondary text color in dark mode<br />
+        <br />
+        You can also set theme via theme property in setConfig()
+      </div>
+    </div>
+
+    <!-- Custom Title -->
+    <div class="demo-section">
+      <h2>Custom Title</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithCustomTitle()"
+      >
+        Open Payment Panel
+      </button>
+      <div class="info">
+        Use setConfig() to set title, or use setHeaderTitle() method to set
+        title separately
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="demo-section">
+      <h2>Empty State</h2>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelWithEmptyState()"
+      >
+        Open Empty State Example
+      </button>
+      <div class="info">
+        When payment methods are empty, display empty state text. You can
+        customize the empty state text via setConfig() or setEmptyStateText().
+      </div>
+    </div>
+
+    <!-- Allow Confirm Without Methods -->
+    <div class="demo-section">
+      <h2>Allow Confirm Without Payment Methods</h2>
+      <button
+        class="btn"
+        onclick="openPanelAllowConfirmWithoutMethods(true)"
+      >
+        Allow Confirm (Default)
+      </button>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelAllowConfirmWithoutMethods(false)"
+      >
+        Disallow Confirm
+      </button>
+      <div class="info">
+        Control whether to show password input/keyboard and confirm buttons when no payment methods are available.<br />
+        • allowConfirmWithoutMethods: true (default) - Show password input and confirm buttons normally<br />
+        • allowConfirmWithoutMethods: false - Hide password input and confirm buttons, prevent payment confirmation
+        event
+      </div>
+    </div>
+
+    <!-- Hide Payment Methods -->
+    <div class="demo-section">
+      <h2>Hide Payment Methods Section</h2>
+      <button
+        class="btn"
+        onclick="openPanelHidePaymentMethods(true, false)"
+      >
+        Hide Payment Methods (with Confirm Button)
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelHidePaymentMethods(true, true)"
+      >
+        Hide Payment Methods (with Password Input)
+      </button>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelHidePaymentMethods(false, false)"
+      >
+        Show Payment Methods (Default)
+      </button>
+      <div class="info">
+        Control whether to hide the payment methods section, only show amount and confirm button/password input.<br />
+        • hidePaymentMethods: true - Hide payment methods section, only show amount and confirm button/password
+        input<br />
+        • hidePaymentMethods: false (default) - Show payment methods section normally
+      </div>
+    </div>
+
+    <!-- Amount Alignment and Fonts -->
+    <div class="demo-section">
+      <h2>Amount Alignment and Fonts</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithAmountAlign('left')"
+      >
+        Amount Left Aligned (Default)
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithAmountAlign('center')"
+      >
+        Amount Center Aligned
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithAmountAlign('right')"
+      >
+        Amount Right Aligned
+      </button>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelWithCustomFonts()"
+      >
+        Custom Fonts
+      </button>
+      <div class="info">
+        Control amount alignment and fonts:<br />
+        • amountAlign: 'left' | 'center' | 'right' (default: 'left') - Amount text alignment<br />
+        • amountFont: string - Font family for amount value, e.g. "Arial, sans-serif"<br />
+        • textFont: string - Font family for other text elements, e.g. "Helvetica, sans-serif"
+      </div>
+    </div>
+
+    <!-- Language and Custom i18n -->
+    <div class="demo-section">
+      <h2>Language and Custom i18n</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithLanguage('zh')"
+      >
+        Chinese (中文)
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithLanguage('ja')"
+      >
+        Japanese (日本語)
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithLanguage('ru')"
+      >
+        Russian (Русский)
+      </button>
+      <button
+        class="btn btn-secondary"
+        onclick="openPanelWithCustomI18n()"
+      >
+        Custom i18n (Partial Override)
+      </button>
+      <div class="info">
+        Control language and custom i18n texts:<br />
+        • language: 'zh' | 'en' | 'ja' | 'ru' (default: 'en') - Set language for all texts<br />
+        • i18n: Partial&lt;I18nTexts&gt; - Custom i18n texts to override defaults, partial override supported<br />
+        • Only set the fields you want to customize, others will use default translations
+      </div>
+    </div>
+
+    <!-- Theme Mode -->
+    <div class="demo-section">
+      <h2>Theme Mode</h2>
+      <button
+        class="btn"
+        onclick="openPanelWithThemeMode('light')"
+      >
+        Light Mode
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithThemeMode('dark')"
+      >
+        Dark Mode
+      </button>
+      <button
+        class="btn"
+        onclick="openPanelWithThemeMode('auto')"
+      >
+        Auto (Follow System)
+      </button>
+      <div class="info">
+        Control theme mode:<br />
+        • themeMode: 'light' | 'dark' | 'auto' (default: 'auto') - Set theme mode<br />
+        • 'light': Force light theme<br />
+        • 'dark': Force dark theme<br />
+        • 'auto': Follow system theme (automatically detects and responds to system theme changes)
+      </div>
+    </div>
+  </div>
+
+  <!-- Include the bundled component -->
+  <script src="../dist/index.js"></script>
+
+  <script>
+    // New selection sections data (recommended)
+    const selectionSections = [
+      {
+        title: 'Select Payment Method',
+        items: [
+          { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+          { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+          { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+        ]
+      },
+      {
+        title: 'Select Bank Card',
+        items: [
+          { id: 4, name: 'CMB Bank (ending 1234)', desc: 'Debit Card', icon: '💵' },
+          { id: 5, name: 'ICBC Bank (ending 5678)', desc: 'Credit Card', icon: '💳' }
+        ]
+      }
+    ]
+
+    const fieldMapping = {
+      titleField: 'name',
+      subtitleField: 'desc',
+      iconField: 'icon',
+      valueField: 'id'
+    }
+
+    // Legacy payment methods list (backward compatible)
+    const commonPaymentMethods = [
+      { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+      { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+      { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+    ]
+
+    // Event handlers
+    const eventConfirmHandler = (e) => {
+      pypjs.close()
+      console.log(e.detail)
+      const { method, amount, password, methodData } = e.detail
+      const info = document.getElementById('eventInfo')
+      let message = `Payment confirmed: Method=${method}, Amount=${amount}`
+      if (password) {
+        message += `, Password=${password}`
+      }
+      if (info) {
+        info.textContent = message
+      }
+      console.log('\x1b[32m%s\x1b[0m', message)
+    }
+
+    const eventCloseHandler = () => {
+      console.log('Payment panel closed')
+    }
+
+    // Basic usage (using new API)
+    function openBasicPanel () {
+      pypjs.setConfig({
+        allowSwipeToClose: true,
+        closeOnOverlayClick: false,
+        enablePassword: false
+      })
+
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
+
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.on('close', eventCloseHandler)
+
+      pypjs.open(99.99)
+    }
+
+    // Configuration example: Disable swipe + Password input + Keyboard mapping (using legacy API for backward compatibility)
+    function openPanelWithConfig () {
+      pypjs.setConfig({
+        allowSwipeToClose: false,
+        closeOnOverlayClick: false,
+        enablePassword: true,
+        passwordLength: 6,
+        closeThreshold: 150,
+        closeThresholdPercent: 0.4,
+        velocityThreshold: 0.8,
+        // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+        keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
+      })
+
+      // Use legacy setPaymentMethods API (backward compatible)
+      pypjs.setPaymentMethods(commonPaymentMethods, {
         titleField: 'name',
         subtitleField: 'desc',
         iconField: 'icon',
         valueField: 'id'
-      }
+      })
 
-      // Event handlers
-      const eventConfirmHandler = (e) => {
-        pypjs.close()
-        console.log(e.detail)
-        const { method, amount, password, methodData } = e.detail
-        const info = document.getElementById('eventInfo')
-        let message = `Payment confirmed: Method=${method}, Amount=${amount}`
-        if (password) {
-          message += `, Password=${password}`
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
+
+    // Custom selection sections example (with single/multiple selection)
+    function openPanelWithSelectionSections () {
+      pypjs.setConfig({
+        allowSwipeToClose: true,
+        closeOnOverlayClick: true,
+        enablePassword: false
+      })
+
+      pypjs.setSelectionSections(
+        [
+          {
+            key: 'paymentMethod', // Custom key for easy code access
+            title: 'Select Payment Method',
+            multiple: false, // Single selection
+            defaultValue: 2, // Default to Alipay
+            items: [
+              { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+              { id: 2, name: 'Alipay', desc: 'Secure & Convenient', icon: '💰' },
+              { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+            ]
+          },
+          {
+            key: 'bankCard', // Custom key
+            title: 'Select Bank Card',
+            multiple: false, // Single selection
+            // No defaultValue, defaults to first item
+            items: [
+              { id: 4, name: 'CMB Bank (ending 1234)', desc: 'Debit Card', icon: '💵' },
+              { id: 5, name: 'ICBC Bank (ending 5678)', desc: 'Credit Card', icon: '💳' },
+              { id: 6, name: 'CCB Bank (ending 9012)', desc: 'Debit Card', icon: '💰' }
+            ]
+          },
+          {
+            key: 'coupons', // Custom key (multiple selection)
+            title: 'Select Coupons',
+            multiple: true, // Multiple selection
+            // No default for multiple selection
+            items: [
+              { id: 7, name: '$10 off $100', desc: 'All items', icon: '🎫' },
+              { id: 8, name: '$30 off $200', desc: 'All items', icon: '🎫' },
+              { id: 9, name: 'New User Coupon', desc: '$8 off $50', icon: '🎁' }
+            ]
+          },
+          {
+            key: 'delivery', // Custom key
+            title: 'Select Delivery Method',
+            multiple: false, // Single selection
+            defaultValue: 11, // Default to Express Delivery
+            items: [
+              { id: 10, name: 'Standard Delivery', desc: '3-5 days', icon: '📦' },
+              { id: 11, name: 'Express Delivery', desc: '1-2 days', icon: '🚀' },
+              { id: 12, name: 'Same Day Delivery', desc: 'Today', icon: '⚡' }
+            ]
+          }
+        ],
+        {
+          titleField: 'name',
+          subtitleField: 'desc',
+          iconField: 'icon',
+          valueField: 'id'
         }
+      )
+
+      pypjs.on('confirm', (e) => {
+        pypjs.close()
+        const { selections, selectionsData, amount } = e.detail
+        const info = document.getElementById('eventInfo')
+        let message = `Confirmed:\nAmount: $${amount}\n\nSelections:\n`
+
+        for (const [key, value] of Object.entries(selections)) {
+          if (Array.isArray(value)) {
+            message += `${key}: ${value.join(', ')}\n`
+          } else {
+            message += `${key}: ${value}\n`
+          }
+        }
+
         if (info) {
           info.textContent = message
         }
-        console.log('\x1b[32m%s\x1b[0m', message)
-      }
+        console.log('All selections:', selections, selectionsData)
+      })
 
-      const eventCloseHandler = () => {
-        console.log('Payment panel closed')
-      }
+      pypjs.open(299.99)
+    }
 
-      // Basic usage
-      function openBasicPanel() {
-        pypjs.setConfig({
-          allowSwipeToClose: true,
-          closeOnOverlayClick: false,
-          enablePassword: false
-        })
+    // Legacy payment methods + two-level grouping (backward compatible)
+    function openPanelWithCustomMethods () {
+      pypjs.setConfig({
+        allowSwipeToClose: true,
+        closeOnOverlayClick: true,
+        enablePassword: false
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
-
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.on('close', eventCloseHandler)
-
-        pypjs.open(99.99)
-      }
-
-      // Configuration example: Disable swipe + Password input + Keyboard mapping
-      function openPanelWithConfig() {
-        pypjs.setConfig({
-          allowSwipeToClose: false,
-          closeOnOverlayClick: false,
-          enablePassword: true,
-          passwordLength: 6,
-          closeThreshold: 150,
-          closeThresholdPercent: 0.4,
-          velocityThreshold: 0.8,
-          // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
-          keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
-        })
-
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
-
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
-
-      // Custom payment methods + two-level grouping
-      function openPanelWithCustomMethods() {
-        pypjs.setConfig({
-          allowSwipeToClose: true,
-          closeOnOverlayClick: true,
-          enablePassword: false
-        })
-
-        pypjs.setPaymentMethods(
-          [
-            {
-              name: 'Online Payment',
-              children: [
-                { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
-                {
-                  id: 2,
-                  name: 'Alipay',
-                  desc: 'Secure & Convenient',
-                  icon: '💰'
-                },
-                { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
-              ]
-            },
-            {
-              name: 'Bank Card Payment',
-              children: [
-                {
-                  id: 4,
-                  name: 'Debit Card',
-                  desc: 'All Banks Supported',
-                  icon: '💵'
-                },
-                {
-                  id: 5,
-                  name: 'Credit Card',
-                  desc: 'All Banks Supported',
-                  icon: '💳'
-                }
-              ]
-            },
-            {
-              name: 'Other Payment',
-              children: [
-                { id: 6, name: 'UnionPay', desc: 'Official', icon: '☁️' },
-                { id: 7, name: 'JD Pay', desc: 'JD Users Only', icon: '🛒' },
-                {
-                  id: 8,
-                  name: 'Meituan Pay',
-                  desc: 'Meituan Users Only',
-                  icon: '🍔'
-                },
-                { id: 9, name: 'QQ Wallet', desc: 'QQ Users Only', icon: '💬' }
-              ]
-            }
-          ],
+      pypjs.setPaymentMethods(
+        [
           {
-            titleField: 'name',
-            subtitleField: 'desc',
-            iconField: 'icon',
-            valueField: 'id'
+            name: 'Online Payment',
+            children: [
+              { id: 1, name: 'WeChat Pay', desc: 'Recommended', icon: '💳' },
+              {
+                id: 2,
+                name: 'Alipay',
+                desc: 'Secure & Convenient',
+                icon: '💰'
+              },
+              { id: 3, name: 'Apple Pay', desc: 'Fast Payment', icon: '🍎' }
+            ]
+          },
+          {
+            name: 'Bank Card Payment',
+            children: [
+              {
+                id: 4,
+                name: 'Debit Card',
+                desc: 'All Banks Supported',
+                icon: '💵'
+              },
+              {
+                id: 5,
+                name: 'Credit Card',
+                desc: 'All Banks Supported',
+                icon: '💳'
+              }
+            ]
+          },
+          {
+            name: 'Other Payment',
+            children: [
+              { id: 6, name: 'UnionPay', desc: 'Official', icon: '☁️' },
+              { id: 7, name: 'JD Pay', desc: 'JD Users Only', icon: '🛒' },
+              {
+                id: 8,
+                name: 'Meituan Pay',
+                desc: 'Meituan Users Only',
+                icon: '🍔'
+              },
+              { id: 9, name: 'QQ Wallet', desc: 'QQ Users Only', icon: '💬' }
+            ]
           }
-        )
+        ],
+        {
+          titleField: 'name',
+          subtitleField: 'desc',
+          iconField: 'icon',
+          valueField: 'id'
+        }
+      )
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
 
-      // Icon display mode: always
-      function openPanelWithAlwaysMode() {
-        pypjs.setConfig({
-          iconDisplay: 'always',
-          headerTitle: 'Payment Methods'
-        })
+    // Icon display mode: always (using legacy API for backward compatibility)
+    function openPanelWithAlwaysMode () {
+      pypjs.setConfig({
+        iconDisplay: 'always',
+        headerTitle: 'Payment Methods'
+      })
 
-        pypjs.setPaymentMethods([
-          {
-            value: 'wechat',
-            title: 'WeChat Pay',
-            subtitle: 'Recommended',
-            icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
-          },
-          {
-            value: 'alipay',
-            title: 'Alipay',
-            subtitle: 'Secure & Convenient',
-            icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
-          },
-          {
-            value: 'card',
-            title: 'Bank Card',
-            subtitle: 'All Banks Supported'
-            // No icon, shows default SVG
-          }
-        ])
+      // Use legacy setPaymentMethods API (backward compatible)
+      pypjs.setPaymentMethods([
+        {
+          value: 'wechat',
+          title: 'WeChat Pay',
+          subtitle: 'Recommended',
+          icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
+        },
+        {
+          value: 'alipay',
+          title: 'Alipay',
+          subtitle: 'Secure & Convenient',
+          icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
+        },
+        {
+          value: 'card',
+          title: 'Bank Card',
+          subtitle: 'All Banks Supported'
+          // No icon, shows default SVG
+        }
+      ])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Icon display mode: auto
-      function openPanelWithAutoMode() {
-        pypjs.setConfig({
-          iconDisplay: 'auto',
-          headerTitle: 'Payment Methods'
-        })
+    // Icon display mode: auto
+    function openPanelWithAutoMode () {
+      pypjs.setConfig({
+        iconDisplay: 'auto',
+        headerTitle: 'Payment Methods'
+      })
 
-        pypjs.setPaymentMethods([
-          {
-            value: 'wechat',
-            title: 'WeChat Pay',
-            subtitle: 'Recommended',
-            icon: '💳'
-          },
-          {
-            value: 'alipay',
-            title: 'Alipay',
-            subtitle: 'Secure & Convenient',
-            icon: '💰'
-          },
-          {
-            value: 'card',
-            title: 'Bank Card',
-            subtitle: 'All Banks Supported'
-            // No icon, icon area is hidden
-          }
-        ])
+      pypjs.setPaymentMethods([
+        {
+          value: 'wechat',
+          title: 'WeChat Pay',
+          subtitle: 'Recommended',
+          icon: '💳'
+        },
+        {
+          value: 'alipay',
+          title: 'Alipay',
+          subtitle: 'Secure & Convenient',
+          icon: '💰'
+        },
+        {
+          value: 'card',
+          title: 'Bank Card',
+          subtitle: 'All Banks Supported'
+          // No icon, icon area is hidden
+        }
+      ])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Icon display mode: never
-      function openPanelWithNeverMode() {
-        pypjs.setConfig({
-          iconDisplay: 'never',
-          headerTitle: 'Payment Methods'
-        })
+    // Icon display mode: never
+    function openPanelWithNeverMode () {
+      pypjs.setConfig({
+        iconDisplay: 'never',
+        headerTitle: 'Payment Methods'
+      })
 
-        pypjs.setPaymentMethods([
-          {
-            value: 'wechat',
-            title: 'WeChat Pay',
-            subtitle: 'Recommended',
-            icon: '💳'
-          },
-          {
-            value: 'alipay',
-            title: 'Alipay',
-            subtitle: 'Secure & Convenient',
-            icon: '💰'
-          },
-          {
-            value: 'card',
-            title: 'Bank Card',
-            subtitle: 'All Banks Supported'
-          }
-        ])
+      pypjs.setPaymentMethods([
+        {
+          value: 'wechat',
+          title: 'WeChat Pay',
+          subtitle: 'Recommended',
+          icon: '💳'
+        },
+        {
+          value: 'alipay',
+          title: 'Alipay',
+          subtitle: 'Secure & Convenient',
+          icon: '💰'
+        },
+        {
+          value: 'card',
+          title: 'Bank Card',
+          subtitle: 'All Banks Supported'
+        }
+      ])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Mixed icons example
-      function openPanelWithMixedIcons() {
-        pypjs.setConfig({
-          iconDisplay: 'always',
-          headerTitle: 'Payment Methods'
-        })
+    // Mixed icons example
+    function openPanelWithMixedIcons () {
+      pypjs.setConfig({
+        iconDisplay: 'always',
+        headerTitle: 'Payment Methods'
+      })
 
-        pypjs.setPaymentMethods([
-          {
-            value: 'wechat',
-            title: 'WeChat Pay',
-            subtitle: 'Recommended',
-            icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
-          },
-          {
-            value: 'alipay',
-            title: 'Alipay',
-            subtitle: 'Secure & Convenient',
-            icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
-          },
-          {
-            value: 'card',
-            title: 'Bank Card',
-            subtitle: 'All Banks Supported'
-            // No icon, shows default SVG
-          },
-          {
-            value: 'apple',
-            title: 'Apple Pay',
-            subtitle: 'Fast Payment',
-            icon: '🍎'
-          }
-        ])
+      pypjs.setPaymentMethods([
+        {
+          value: 'wechat',
+          title: 'WeChat Pay',
+          subtitle: 'Recommended',
+          icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png'
+        },
+        {
+          value: 'alipay',
+          title: 'Alipay',
+          subtitle: 'Secure & Convenient',
+          icon: 'https://i.alipayobjects.com/common/favicon/favicon.ico'
+        },
+        {
+          value: 'card',
+          title: 'Bank Card',
+          subtitle: 'All Banks Supported'
+          // No icon, shows default SVG
+        },
+        {
+          value: 'apple',
+          title: 'Apple Pay',
+          subtitle: 'Fast Payment',
+          icon: '🍎'
+        }
+      ])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
 
-      // Custom theme example
-      function openPanelWithRedTheme() {
-        pypjs.setConfig({
-          headerTitle: 'Confirm Payment',
-          theme: {
-            primaryColor: '#ff4d4f',
-            primaryHoverColor: '#ff7875',
-            overlayColor: 'rgba(0, 0, 0, 0.6)',
-            panelBgLight:
-              'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
-            panelBgDark:
-              'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
-            textPrimaryLight: '#8b2635',
-            textSecondaryLight: '#c85a5a',
-            textPrimaryDark: '#ffe0e0',
-            textSecondaryDark: '#ff9999'
-          }
-        })
+    // Custom theme example
+    function openPanelWithRedTheme () {
+      pypjs.setConfig({
+        headerTitle: 'Confirm Payment',
+        theme: {
+          primaryColor: '#ff4d4f',
+          primaryHoverColor: '#ff7875',
+          overlayColor: 'rgba(0, 0, 0, 0.6)',
+          panelBgLight:
+            'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
+          panelBgDark:
+            'linear-gradient(135deg, rgba(49, 44, 0, 1.000) 0.000%, rgba(49, 44, 0, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 14.286%, rgba(51, 46, 30, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 28.571%, rgba(50, 49, 73, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 42.857%, rgba(44, 51, 119, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 57.143%, rgba(36, 54, 162, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 71.429%, rgba(26, 57, 192, 1.000) 85.714%, rgba(17, 60, 204, 1.000) 85.714% 100.000%)',
+          textPrimaryLight: '#8b2635',
+          textSecondaryLight: '#c85a5a',
+          textPrimaryDark: '#ffe0e0',
+          textSecondaryDark: '#ff9999'
+        }
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
-      // Custom title example
-      function openPanelWithCustomTitle() {
-        pypjs.setConfig({
-          headerTitle: '❤❤❤❤ Love Payment ❤❤❤❤'
-        })
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
+    // Custom title example
+    function openPanelWithCustomTitle () {
+      pypjs.setConfig({
+        headerTitle: '❤❤❤❤ Love Payment ❤❤❤❤'
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(88.88)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(88.88)
+    }
 
-      // Empty state example
-      function openPanelWithEmptyState() {
-        pypjs.setConfig({
-          emptyStateText: 'No payment methods available'
-        })
+    // Empty state example
+    function openPanelWithEmptyState () {
+      pypjs.setConfig({
+        emptyStateText: 'No payment methods available'
+      })
 
-        pypjs.setPaymentMethods([])
+      pypjs.setPaymentMethods([])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(99.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(99.99)
+    }
 
-      // Allow confirm without payment methods example
-      function openPanelAllowConfirmWithoutMethods(allow) {
-        pypjs.setConfig({
-          allowConfirmWithoutMethods: allow,
-          enablePassword: true,
-          emptyStateText: 'No payment methods available',
-          // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
-          keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
-        })
+    // Allow confirm without payment methods example
+    function openPanelAllowConfirmWithoutMethods (allow) {
+      pypjs.setConfig({
+        allowConfirmWithoutMethods: allow,
+        enablePassword: true,
+        emptyStateText: 'No payment methods available',
+        // Keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+        keyboardMapping: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
+      })
 
-        pypjs.setPaymentMethods([])
+      pypjs.setPaymentMethods([])
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Hide payment methods example
-      function openPanelHidePaymentMethods(hide, enablePassword) {
-        pypjs.setConfig({
-          hidePaymentMethods: hide,
-          enablePassword: enablePassword || false,
-          // If password input is enabled, add keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
-          keyboardMapping: enablePassword ? ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'] : undefined
-        })
+    // Hide payment methods example
+    function openPanelHidePaymentMethods (hide, enablePassword) {
+      pypjs.setConfig({
+        hidePaymentMethods: hide,
+        enablePassword: enablePassword || false,
+        // If password input is enabled, add keyboard character mapping: 0-9 mapped to special characters !@#$%^&*()
+        keyboardMapping: enablePassword ? ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'] : undefined
+      })
 
-        // Set payment methods even when hidden, to demonstrate the feature
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Set payment methods even when hidden, to demonstrate the feature
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
 
-      // Amount alignment example
-      function openPanelWithAmountAlign(align) {
-        pypjs.setConfig({
-          amountAlign: align
-        })
+    // Amount alignment example
+    function openPanelWithAmountAlign (align) {
+      pypjs.setConfig({
+        amountAlign: align
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Custom fonts example
-      function openPanelWithCustomFonts() {
-        pypjs.setConfig({
-          amountAlign: 'center',
-          amountFont: 'Georgia, serif',
-          textFont: 'Verdana, sans-serif'
-        })
+    // Custom fonts example
+    function openPanelWithCustomFonts () {
+      pypjs.setConfig({
+        amountAlign: 'center',
+        amountFont: 'Georgia, serif',
+        textFont: 'Verdana, sans-serif'
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
 
-      // Language example
-      function openPanelWithLanguage(lang) {
-        pypjs.setConfig({
-          language: lang
-        })
+    // Language example
+    function openPanelWithLanguage (lang) {
+      pypjs.setConfig({
+        language: lang
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
 
-      // Custom i18n example (partial override)
-      function openPanelWithCustomI18n() {
-        pypjs.setConfig({
-          language: 'en',
-          i18n: {
-            headerTitle: '💳 Payment',
-            confirmButton: 'Pay Now',
-            cancelButton: 'Maybe Later'
-            // Other texts will use English defaults
-          }
-        })
+    // Custom i18n example (partial override)
+    function openPanelWithCustomI18n () {
+      pypjs.setConfig({
+        language: 'en',
+        i18n: {
+          headerTitle: '💳 Payment',
+          confirmButton: 'Pay Now',
+          cancelButton: 'Maybe Later'
+          // Other texts will use English defaults
+        }
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(299.99)
-      }
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(299.99)
+    }
 
-      // Theme mode example
-      function openPanelWithThemeMode(mode) {
-        pypjs.setConfig({
-          themeMode: mode
-        })
+    // Theme mode example
+    function openPanelWithThemeMode (mode) {
+      pypjs.setConfig({
+        themeMode: mode
+      })
 
-        pypjs.setPaymentMethods(commonPaymentMethods, commonPaymentMethodsFieldMapping)
+      // Use new setSelectionSections API
+      pypjs.setSelectionSections(selectionSections, fieldMapping)
 
-        pypjs.on('confirm', eventConfirmHandler)
-        pypjs.open(199.99)
-      }
-    </script>
-  </body>
+      pypjs.on('confirm', eventConfirmHandler)
+      pypjs.open(199.99)
+    }
+  </script>
+</body>
+
 </html>

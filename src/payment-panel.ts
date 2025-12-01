@@ -1,4 +1,4 @@
-import type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
+import type { PaymentMethod, SelectionSection, SelectionItem, FieldMapping, PaymentPanelConfig } from './types'
 import { getI18nTexts, type Language, type I18nTexts } from './i18n'
 
 /**
@@ -16,8 +16,8 @@ const DEFAULT_CONFIG: Required<Omit<PaymentPanelConfig, 'theme' | 'headerTitle' 
   passwordLength: 6,
   iconDisplay: 'always',
   autoCloseOnConfirm: false,
-  allowConfirmWithoutMethods: true,
-  hidePaymentMethods: false,
+  allowConfirmWithoutSelections: true,
+  hideSelections: false,
   amountAlign: 'left',
   amountFont: '',
   textFont: '',
@@ -60,8 +60,10 @@ class PaymentPanel extends HTMLElement {
   private iconDisplay: 'always' | 'never' | 'auto' = DEFAULT_CONFIG.iconDisplay
   private emptyStateText?: string // Optional, defaults to i18n text
   private autoCloseOnConfirm: boolean = DEFAULT_CONFIG.autoCloseOnConfirm
-  private allowConfirmWithoutMethods: boolean = DEFAULT_CONFIG.allowConfirmWithoutMethods
-  private hidePaymentMethods: boolean = DEFAULT_CONFIG.hidePaymentMethods
+  private allowConfirmWithoutMethods: boolean = DEFAULT_CONFIG.allowConfirmWithoutSelections // Legacy, use new config value
+  private allowConfirmWithoutSelections: boolean = DEFAULT_CONFIG.allowConfirmWithoutSelections
+  private hidePaymentMethods: boolean = DEFAULT_CONFIG.hideSelections // Legacy, use new config value
+  private hideSelections: boolean = DEFAULT_CONFIG.hideSelections
   private amountAlign: 'left' | 'center' | 'right' = DEFAULT_CONFIG.amountAlign
   private amountFont: string = DEFAULT_CONFIG.amountFont
   private textFont: string = DEFAULT_CONFIG.textFont
@@ -91,12 +93,19 @@ class PaymentPanel extends HTMLElement {
     valueField: 'value'
   }
 
-  // Payment methods configuration
-  private paymentMethods: PaymentMethod[] = []
+  // Selection sections configuration
+  private selectionSections: SelectionSection[] = []
   private fieldMapping: FieldMapping = {}
+  private selectedItems: Map<number, SelectionItem[]> = new Map() // Map of section index to selected items
+  private hasCustomSelections: boolean = false // Flag indicating whether custom selections have been set
+
+  // Legacy support for paymentMethods
+  private paymentMethods: PaymentMethod[] = []
   private selectedMethod: PaymentMethod | null = null
   private hasCustomPaymentMethods: boolean = false // Flag indicating whether custom payment methods have been set
   private expandedGroups: Set<number> = new Set() // Expanded group indices
+  private loadedChildren: Map<number, PaymentMethod[]> = new Map() // Cache for lazy-loaded children
+  private loadingGroups: Set<number> = new Set() // Groups that are currently loading
 
   /**
    * Constructor
@@ -108,9 +117,11 @@ class PaymentPanel extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
     this.isOpen = false
 
-    // Use default payment methods (empty array)
+    // Initialize with empty selections
+    this.selectionSections = []
     this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
     this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
+    this.selectedItems = new Map()
     this.selectedMethod = null
   }
 
@@ -186,7 +197,7 @@ class PaymentPanel extends HTMLElement {
     // Initialize password input (after render)
     this.initPasswordInput()
     this.updatePasswordUI()
-    this.updatePaymentMethodsVisibility()
+    this.updateSelectionSectionsVisibility()
     this.updateAmountStyles()
     this.updateI18nTexts()
     this.updateDragHandleVisibility()
@@ -509,7 +520,7 @@ class PaymentPanel extends HTMLElement {
           color: var(--text-primary-dark);
         }
 
-        .payment-methods {
+        .selection-sections {
           flex: 1;
           display: flex;
           flex-direction: column;
@@ -517,7 +528,7 @@ class PaymentPanel extends HTMLElement {
           overflow: hidden;
         }
 
-        .payment-methods-list-container {
+        .selection-sections-container {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
@@ -529,11 +540,19 @@ class PaymentPanel extends HTMLElement {
           -ms-overflow-style: none; /* IE and Edge */
         }
 
-        .payment-methods-list-container::-webkit-scrollbar {
+        .selection-sections-container::-webkit-scrollbar {
           display: none; /* Chrome, Safari, Opera */
         }
 
-        .payment-methods-title {
+        .selection-section {
+          margin-bottom: 20px;
+        }
+
+        .selection-section:last-child {
+          margin-bottom: 0;
+        }
+
+        .selection-section-title {
           font-size: 16px;
           font-weight: 600;
           color: var(--text-primary-light);
@@ -541,22 +560,22 @@ class PaymentPanel extends HTMLElement {
           flex-shrink: 0;
         }
 
-        :host([data-theme="dark"]) .payment-methods-title {
+        :host([data-theme="dark"]) .selection-section-title {
           color: var(--text-primary-dark);
         }
 
-        .payment-methods-empty {
+        .selection-sections-empty {
           text-align: center;
           padding: 40px 20px;
           color: var(--text-secondary-light);
           font-size: 14px;
         }
 
-        :host([data-theme="dark"]) .payment-methods-empty {
+        :host([data-theme="dark"]) .selection-sections-empty {
           color: var(--text-secondary-dark);
         }
 
-        .payment-method {
+        .selection-item {
           display: flex;
           align-items: center;
           padding: 10px 12px;
@@ -569,6 +588,181 @@ class PaymentPanel extends HTMLElement {
           -webkit-tap-highlight-color: transparent;
         }
 
+        .selection-item:active {
+          background-color: var(--bg-button-secondary-hover-light);
+        }
+
+        :host([data-theme="dark"]) .selection-item:active {
+          background-color: var(--bg-button-secondary-hover-dark);
+        }
+
+        :host([data-theme="dark"]) .selection-item {
+          border-color: var(--border-dark);
+        }
+
+        .selection-item:hover {
+          background-color: var(--bg-button-secondary-hover-light);
+        }
+
+        :host([data-theme="dark"]) .selection-item:hover {
+          background-color: var(--bg-button-secondary-hover-dark);
+        }
+
+        .selection-item.selected {
+          border-color: var(--bg-button-primary-light);
+          background-color: var(--bg-button-secondary-hover-light);
+        }
+
+        :host([data-theme="dark"]) .selection-item.selected {
+          border-color: var(--bg-button-primary-dark);
+          background-color: var(--bg-button-secondary-hover-dark);
+        }
+
+        .selection-icon {
+          width: 28px;
+          height: 28px;
+          margin-right: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          flex-shrink: 0;
+          border-radius: 4px;
+          overflow: hidden;
+          background-color: var(--bg-button-secondary-light);
+        }
+
+        :host([data-theme="dark"]) .selection-icon {
+          background-color: var(--bg-button-secondary-dark);
+        }
+
+        .selection-icon.hidden {
+          display: none;
+        }
+
+        .selection-icon img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .selection-icon .icon-text {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-primary-light);
+        }
+
+        :host([data-theme="dark"]) .selection-icon .icon-text {
+          color: var(--text-primary-dark);
+        }
+
+        .selection-icon .icon-default {
+          width: 16px;
+          height: 16px;
+          opacity: 0.6;
+        }
+
+        .selection-icon .icon-default path {
+          fill: var(--text-secondary-light);
+        }
+
+        :host([data-theme="dark"]) .selection-icon .icon-default path {
+          fill: var(--text-secondary-dark);
+        }
+
+        .selection-info {
+          flex: 1;
+        }
+
+        .selection-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-primary-light);
+          margin-bottom: 2px;
+        }
+
+        :host([data-theme="dark"]) .selection-name {
+          color: var(--text-primary-dark);
+        }
+
+        .selection-desc {
+          font-size: 11px;
+          color: var(--text-secondary-light);
+        }
+
+        :host([data-theme="dark"]) .selection-desc {
+          color: var(--text-secondary-dark);
+        }
+
+        .selection-radio {
+          width: 20px;
+          height: 20px;
+          position: relative;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .selection-item.selected .selection-radio {
+          opacity: 1;
+        }
+
+        .selection-radio svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        .selection-radio svg path {
+          stroke: ${primaryColor};
+          stroke-width: 2.5;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          fill: none;
+        }
+
+        .selection-checkbox {
+          width: 18px;
+          height: 18px;
+          border: 2px solid var(--border-light);
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        :host([data-theme="dark"]) .selection-checkbox {
+          border-color: var(--border-dark);
+        }
+
+        .selection-item.selected .selection-checkbox {
+          background-color: ${primaryColor};
+          border-color: ${primaryColor};
+        }
+
+        .selection-checkbox svg {
+          width: 12px;
+          height: 12px;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .selection-item.selected .selection-checkbox svg {
+          opacity: 1;
+        }
+
+        .selection-checkbox svg path {
+          stroke: #ffffff;
+          stroke-width: 2.5;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          fill: none;
+        }
+
+        /* Legacy support for payment-method classes */
         .payment-method-group {
           margin-bottom: 8px;
         }
@@ -640,6 +834,43 @@ class PaymentPanel extends HTMLElement {
 
         :host([data-theme="dark"]) .payment-method-group-arrow svg path {
           stroke: var(--text-secondary-dark);
+        }
+
+        .arrow-loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--border-light);
+          border-top-color: var(--primary-color);
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+        }
+
+        :host([data-theme="dark"]) .arrow-loading-spinner {
+          border-color: var(--border-dark);
+          border-top-color: var(--primary-color);
+        }
+
+        .payment-method-group.loading .payment-method-group-header {
+          cursor: wait;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .payment-method {
+          display: flex;
+          align-items: center;
+          padding: 10px 12px;
+          border: 1px solid var(--border-light);
+          border-radius: 8px;
+          margin-bottom: 6px;
+          cursor: pointer;
+          transition: background-color 0.2s ease, border-color 0.2s ease;
+          outline: none;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .payment-method:active {
@@ -986,10 +1217,9 @@ class PaymentPanel extends HTMLElement {
             <div class="amount-label">${this.amountLabel || getI18nTexts(this.language, this.customI18n).amountLabel}</div>
             <div class="amount-value"><span class="currency-symbol">¥</span><span id="amount">0.00</span></div>
           </div>
-          <div class="payment-methods">
-            <div class="payment-methods-title">${getI18nTexts(this.language, this.customI18n).paymentMethodsTitle}</div>
-            <div class="payment-methods-list-container">
-              <div id="payment-methods-list"></div>
+          <div class="selection-sections">
+            <div class="selection-sections-container">
+              <div id="selection-sections-list"></div>
             </div>
           </div>
           <div class="password-section" id="passwordSection" style="display: none;">
@@ -1036,8 +1266,8 @@ class PaymentPanel extends HTMLElement {
     this.overlay = this.shadow.querySelector('.overlay')
     this.panel = this.shadow.querySelector('.panel')
 
-    // Render payment methods list
-    this.renderPaymentMethods()
+    // Render selection sections
+    this.renderSelectionSections()
   }
 
   /**
@@ -1109,45 +1339,83 @@ class PaymentPanel extends HTMLElement {
 
   /**
    * Confirm payment
-   * Gets selected payment method and amount, triggers payment confirmation event
+   * Gets selected item and amount, triggers confirmation event
    * @param {string} [password] - Payment password, optional
    * @author Brid9e
    */
   private confirmPayment(password?: string) {
-    // Check if payment methods exist
-    const hasPaymentMethods = this.paymentMethods && this.paymentMethods.length > 0
+    // Check if selections exist
+    const hasSelections = (this.selectionSections && this.selectionSections.length > 0) ||
+                          (this.paymentMethods && this.paymentMethods.length > 0)
 
-    // If no payment methods and allowConfirmWithoutMethods is false, prevent execution
-    if (!hasPaymentMethods && !this.allowConfirmWithoutMethods) {
+    // If no selections and allowConfirmWithoutSelections is false, prevent execution
+    const allowConfirm = this.allowConfirmWithoutSelections
+
+    if (!hasSelections && !allowConfirm) {
       return
     }
 
-    // Get selected payment method
-    const selectedIndex = this.shadow
-      .querySelector('.payment-method.selected')
-      ?.getAttribute('data-index')
-    const allMethods = this.getAllMethods()
-    const selectedMethod = selectedIndex !== null && selectedIndex !== undefined
-      ? allMethods[parseInt(selectedIndex, 10)]
-      : null
-    const amount =
-      this.shadow.querySelector('#amount')?.textContent || '0.00'
-
-    // Get field mapping configuration
+    const amount = this.shadow.querySelector('#amount')?.textContent || '0.00'
     const valueField = this.fieldMapping.valueField || 'value'
 
-    // Get method value, prioritize valueField, otherwise use the entire object
-    let methodValue = selectedMethod?.[valueField]
-    if (methodValue === undefined) {
-      // Try common field names
-      methodValue = selectedMethod?.value || selectedMethod?.id || selectedMethod
+    // Build selections result for new API
+    const selections: any = {}
+    const selectionsData: any = {}
+
+    if (this.selectionSections && this.selectionSections.length > 0) {
+      this.selectionSections.forEach((section, index) => {
+        // Use custom key if provided, otherwise use numeric index
+        const sectionKey = section.key !== undefined ? section.key : index
+        const selectedInSection = this.selectedItems.get(index) || []
+
+        if (selectedInSection.length > 0) {
+          const values = selectedInSection.map(item => {
+            let value = item[valueField]
+            if (value === undefined) {
+              value = item.value || item.id || item
+            }
+            return value
+          })
+
+          // For single selection, return single value; for multiple, return array
+          selections[sectionKey] = section.multiple ? values : values[0]
+          selectionsData[sectionKey] = section.multiple ? selectedInSection : selectedInSection[0]
+        }
+      })
+    }
+
+    // Legacy support: get first selected item for backward compatibility
+    let legacySelection: any = null
+    let legacySelectionData: any = null
+
+    if (this.selectedItems.size > 0) {
+      const firstSectionItems = this.selectedItems.get(0)
+      if (firstSectionItems && firstSectionItems.length > 0) {
+        legacySelectionData = firstSectionItems[0]
+        legacySelection = legacySelectionData[valueField]
+        if (legacySelection === undefined) {
+          legacySelection = legacySelectionData.value || legacySelectionData.id || legacySelectionData
+        }
+      }
+    } else if (this.selectedMethod) {
+      // Fallback to legacy payment method
+      legacySelectionData = this.selectedMethod
+      legacySelection = legacySelectionData[valueField]
+      if (legacySelection === undefined) {
+        legacySelection = legacySelectionData.value || legacySelectionData.id || legacySelectionData
+      }
     }
 
     // Build event detail
     const detail: any = {
-      method: methodValue,
-      methodData: selectedMethod,
-      amount
+      selections,           // New: all selections grouped by section title
+      selectionsData,       // New: all selection data grouped by section title
+      amount,
+      // Legacy support
+      selection: legacySelection,
+      selectionData: legacySelectionData,
+      method: legacySelection,
+      methodData: legacySelectionData
     }
 
     // Add password to detail if provided
@@ -1155,7 +1423,7 @@ class PaymentPanel extends HTMLElement {
       detail.password = password
     }
 
-    // Dispatch payment confirmation event
+    // Dispatch confirmation event
     this.dispatchEvent(
       new CustomEvent('confirm', {
         detail,
@@ -1189,18 +1457,22 @@ class PaymentPanel extends HTMLElement {
   /**
    * Update password input UI
    * Shows/hides password input area and action buttons based on whether password input is enabled
-   * Also considers whether payment methods exist and allowConfirmWithoutMethods configuration
+   * Also considers whether selections exist and allowConfirmWithoutSelections configuration
    * @author Brid9e
    */
   private updatePasswordUI() {
     const passwordSection = this.shadow.querySelector('#passwordSection') as HTMLElement
     const actions = this.shadow.querySelector('#actions') as HTMLElement
 
-    // Check if payment methods exist
-    const hasPaymentMethods = this.paymentMethods && this.paymentMethods.length > 0
+    // Check if selections exist
+    const hasSelections = (this.selectionSections && this.selectionSections.length > 0) ||
+                          (this.paymentMethods && this.paymentMethods.length > 0)
 
-    // If no payment methods and allowConfirmWithoutMethods is false, hide both
-    if (!hasPaymentMethods && !this.allowConfirmWithoutMethods) {
+    // Use allowConfirmWithoutSelections (which may have been set via legacy method)
+    const allowConfirm = this.allowConfirmWithoutSelections
+
+    // If no selections and allowConfirm is false, hide both
+    if (!hasSelections && !allowConfirm) {
       if (passwordSection) {
         passwordSection.style.display = 'none'
       }
@@ -1295,24 +1567,163 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * Update payment methods section visibility
-   * Shows/hides payment methods section based on hidePaymentMethods configuration
+   * Update selection sections visibility
+   * Shows/hides selection sections based on hideSelections configuration
    * @author Brid9e
    */
-  private updatePaymentMethodsVisibility() {
-    const paymentMethodsSection = this.shadow.querySelector('.payment-methods') as HTMLElement
-    if (paymentMethodsSection) {
-      paymentMethodsSection.style.display = this.hidePaymentMethods ? 'none' : ''
+  private updateSelectionSectionsVisibility() {
+    const selectionsSection = this.shadow.querySelector('.selection-sections') as HTMLElement
+    if (selectionsSection) {
+      selectionsSection.style.display = this.hideSelections ? 'none' : ''
     }
   }
 
   /**
-   * Render payment methods list
+   * Update payment methods section visibility (legacy)
+   * @deprecated Use updateSelectionSectionsVisibility instead
+   * @author Brid9e
+   */
+  private updatePaymentMethodsVisibility() {
+    this.updateSelectionSectionsVisibility()
+  }
+
+  /**
+   * Render selection sections
+   * Renders multiple custom selection sections with their titles and items
+   * @author Brid9e
+   */
+  private renderSelectionSections() {
+    // If using legacy paymentMethods, render that instead
+    if (this.paymentMethods && this.paymentMethods.length > 0) {
+      this.renderPaymentMethods()
+      return
+    }
+
+    const container = this.shadow.querySelector('#selection-sections-list')
+    if (!container) return
+
+    // Update visibility first
+    this.updateSelectionSectionsVisibility()
+
+    // If selection sections are hidden, don't render content
+    if (this.hideSelections) {
+      return
+    }
+
+    // If selection sections are empty, show empty state
+    if (!this.selectionSections || this.selectionSections.length === 0) {
+      const emptyText = this.emptyStateText || getI18nTexts(this.language, this.customI18n).emptyStateText
+      container.innerHTML = `<div class="selection-sections-empty">${emptyText}</div>`
+      return
+    }
+
+    const titleField = this.fieldMapping.titleField || 'title'
+    const subtitleField = this.fieldMapping.subtitleField || 'subtitle'
+    const iconField = this.fieldMapping.iconField || 'icon'
+    const valueField = this.fieldMapping.valueField || 'value'
+
+    // Helper function to get field value with fallbacks
+    const getField = (item: SelectionItem, field: string, fallbacks: string[]) => {
+      if (item[field] !== undefined) return item[field]
+      for (const fallback of fallbacks) {
+        if (item[fallback] !== undefined) return item[fallback]
+      }
+      return ''
+    }
+
+    let globalItemIndex = 0
+
+    container.innerHTML = this.selectionSections
+      .map((section, sectionIndex) => {
+        const sectionTitle = section.title || ''
+        const items = section.items || []
+
+        if (items.length === 0) {
+          return '' // Skip empty sections
+        }
+
+        const selectedInSection = this.selectedItems.get(sectionIndex) || []
+
+        const isMultiple = section.multiple || false
+
+        const itemsHtml = items
+          .map((item, itemIndex) => {
+            const value = String(getField(item, valueField, ['value', 'id', 'code']) || globalItemIndex)
+            const title = String(getField(item, titleField, ['title', 'name', 'label']) || '')
+            const subtitle = String(getField(item, subtitleField, ['subtitle', 'desc', 'description']) || '')
+            const icon = String(getField(item, iconField, ['icon', 'emoji']) || '')
+            const isSelected = selectedInSection.includes(item)
+            const currentIndex = globalItemIndex++
+
+            const selectionIndicator = isMultiple ? `
+              <div class="selection-checkbox">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              </div>
+            ` : `
+              <div class="selection-radio">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              </div>
+            `
+
+            return `
+              <div class="selection-item ${isSelected ? 'selected' : ''}"
+                   data-value="${value}"
+                   data-index="${currentIndex}"
+                   data-item-index="${itemIndex}"
+                   data-section-index="${sectionIndex}">
+                ${this.renderIcon(icon).replace('payment-icon', 'selection-icon')}
+                <div class="selection-info">
+                  <div class="selection-name">${title}</div>
+                  ${subtitle ? `<div class="selection-desc">${subtitle}</div>` : ''}
+                </div>
+                ${selectionIndicator}
+              </div>
+            `
+          })
+          .join('')
+
+        const multipleHintText = section.multiple ? (this.language === 'zh' ? '(多选)' : this.language === 'ja' ? '(複数選択)' : this.language === 'ru' ? '(Множественный)' : '(Multiple)') : ''
+        const multipleHint = section.multiple ? ` <span style="font-size: 12px; color: var(--text-secondary-light); font-weight: normal;">${multipleHintText}</span>` : ''
+
+        return `
+          <div class="selection-section" data-section-index="${sectionIndex}">
+            <div class="selection-section-title">${sectionTitle}${multipleHint}</div>
+            ${itemsHtml}
+          </div>
+        `
+      })
+      .join('')
+
+    // Setup image load error handling
+    const defaultIconSvg = `
+      <svg class="icon-default" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+      </svg>
+    `
+    container.querySelectorAll('img[data-icon-fallback]').forEach(img => {
+      img.addEventListener('error', () => {
+        const iconContainer = img.closest('.selection-icon[data-icon-type="image"]') as HTMLElement
+        if (iconContainer) {
+          iconContainer.innerHTML = defaultIconSvg
+          iconContainer.removeAttribute('data-icon-type')
+        }
+      })
+    })
+  }
+
+  /**
+   * Render payment methods list (legacy)
    * Supports regular list and two-level grouped list, handles expand/collapse functionality
+   * @deprecated Use renderSelectionSections instead
    * @author Brid9e
    */
   private renderPaymentMethods() {
-    const container = this.shadow.querySelector('#payment-methods-list')
+    // Use the same container as selection sections for backward compatibility
+    const container = this.shadow.querySelector('#selection-sections-list')
     if (!container) return
 
     // Update visibility first
@@ -1323,21 +1734,11 @@ class PaymentPanel extends HTMLElement {
       return
     }
 
-    const titleElement = this.shadow.querySelector('.payment-methods-title') as HTMLElement
-
-    // If payment methods are empty, show empty state and hide title
+    // If payment methods are empty, show empty state
     if (!this.paymentMethods || this.paymentMethods.length === 0) {
       const emptyText = this.emptyStateText || getI18nTexts(this.language, this.customI18n).emptyStateText
-      container.innerHTML = `<div class="payment-methods-empty">${emptyText}</div>`
-      if (titleElement) {
-        titleElement.style.display = 'none'
-      }
+      container.innerHTML = `<div class="selection-sections-empty">${emptyText}</div>`
       return
-    }
-
-    // Show title when payment methods exist
-    if (titleElement) {
-      titleElement.style.display = ''
     }
 
     const titleField = this.fieldMapping.titleField || 'title'
@@ -1355,65 +1756,94 @@ class PaymentPanel extends HTMLElement {
     }
 
     // Flatten all payment methods (including children) for finding selected item
-    const flattenMethods = (methods: PaymentMethod[]): PaymentMethod[] => {
+    const flattenMethods = (methods: PaymentMethod[], isTopLevel: boolean = false): PaymentMethod[] => {
       const result: PaymentMethod[] = []
-      methods.forEach(method => {
-        if (method.children && method.children.length > 0) {
-          result.push(...flattenMethods(method.children))
-        } else {
+      methods.forEach((method, index) => {
+        // Only check loadedChildren for top-level items
+        let childrenToFlatten: PaymentMethod[] | null = null
+
+        if (isTopLevel && method.children) {
+          // Top level: check cache or direct array
+          const loadedChildren = this.loadedChildren.get(index)
+          childrenToFlatten = loadedChildren || (Array.isArray(method.children) ? method.children : null)
+        } else if (!isTopLevel && method.children && Array.isArray(method.children)) {
+          // Nested level: only use direct array
+          childrenToFlatten = method.children
+        }
+
+        if (childrenToFlatten && childrenToFlatten.length > 0) {
+          // Recursively flatten children (pass false for nested levels)
+          result.push(...flattenMethods(childrenToFlatten, false))
+        } else if (!method.children) {
+          // Only include if it's a leaf node (no children property)
           result.push(method)
         }
+        // If children is Promise and not loaded, skip it
       })
       return result
     }
 
-    const allMethods = flattenMethods(this.paymentMethods)
+    const allMethods = flattenMethods(this.paymentMethods, true)
     let itemIndex = 0
 
     container.innerHTML = this.paymentMethods
       .map((method, groupIndex) => {
-        // Check if has children
-        if (method.children && method.children.length > 0) {
+        // Check if has children (array or Promise)
+        if (method.children) {
           // Group mode
           const title = String(getField(method, titleField, ['title', 'name', 'label']) || '')
           const isExpanded = this.expandedGroups.has(groupIndex)
 
-          const childrenHtml = method.children
-            .map((child: PaymentMethod) => {
-              const value = String(getField(child, valueField, ['value', 'id', 'code']) || itemIndex)
-              const childTitle = String(getField(child, titleField, ['title', 'name', 'label']) || '')
-              const childSubtitle = String(getField(child, subtitleField, ['subtitle', 'desc', 'description']) || '')
-              const icon = String(getField(child, iconField, ['icon', 'emoji']) || '')
-              const isSelected = this.selectedMethod === child
-              const currentIndex = itemIndex++
+          // Check if children is already loaded (from cache or direct array)
+          const loadedChildren = this.loadedChildren.get(groupIndex)
+          const isChildrenArray = Array.isArray(method.children)
+          const childrenToRender: PaymentMethod[] | null = loadedChildren || (isChildrenArray ? method.children as PaymentMethod[] : null)
 
-              return `
-                <div class="payment-method ${isSelected ? 'selected' : ''}" data-method="${value}" data-index="${currentIndex}" data-group-index="${groupIndex}">
-                  ${this.renderIcon(icon)}
-                  <div class="payment-info">
-                    <div class="payment-name">${childTitle}</div>
-                    ${childSubtitle ? `<div class="payment-desc">${childSubtitle}</div>` : ''}
+          let childrenHtml = ''
+          if (childrenToRender && childrenToRender.length > 0) {
+            childrenHtml = childrenToRender
+              .map((child: PaymentMethod) => {
+                const value = String(getField(child, valueField, ['value', 'id', 'code']) || itemIndex)
+                const childTitle = String(getField(child, titleField, ['title', 'name', 'label']) || '')
+                const childSubtitle = String(getField(child, subtitleField, ['subtitle', 'desc', 'description']) || '')
+                const icon = String(getField(child, iconField, ['icon', 'emoji']) || '')
+                const isSelected = this.selectedMethod === child
+                const currentIndex = itemIndex++
+
+                return `
+                  <div class="payment-method ${isSelected ? 'selected' : ''}" data-method="${value}" data-index="${currentIndex}" data-group-index="${groupIndex}">
+                    ${this.renderIcon(icon)}
+                    <div class="payment-info">
+                      <div class="payment-name">${childTitle}</div>
+                      ${childSubtitle ? `<div class="payment-desc">${childSubtitle}</div>` : ''}
+                    </div>
+                    <div class="payment-radio">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                    </div>
                   </div>
-                  <div class="payment-radio">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17l-5-5"/>
-                    </svg>
-                  </div>
-                </div>
-              `
-            })
-            .join('')
+                `
+              })
+              .join('')
+          }
+
+          // Check if this group is currently loading
+          const isLoading = this.loadingGroups.has(groupIndex)
+          const loadingClass = isLoading ? 'loading' : ''
 
           return `
-            <div class="payment-method-group ${isExpanded ? 'expanded' : ''}" data-group-index="${groupIndex}">
+            <div class="payment-method-group ${isExpanded ? 'expanded' : ''} ${loadingClass}" data-group-index="${groupIndex}">
               <div class="payment-method-group-header" data-group-header="${groupIndex}">
                 <div class="payment-info">
                   <div class="payment-name">${title}</div>
                 </div>
                 <div class="payment-method-group-arrow">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 18l6-6-6-6"/>
-                  </svg>
+                  ${isLoading ? '<div class="arrow-loading-spinner"></div>' : `
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  `}
                 </div>
               </div>
               <div class="payment-method-group-children">
@@ -1448,19 +1878,7 @@ class PaymentPanel extends HTMLElement {
       })
       .join('')
 
-    // Setup group expand/collapse events
-    container.querySelectorAll('.payment-method-group-header').forEach(header => {
-      header.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const groupIndex = parseInt(header.getAttribute('data-group-header') || '0')
-        if (this.expandedGroups.has(groupIndex)) {
-          this.expandedGroups.delete(groupIndex)
-        } else {
-          this.expandedGroups.add(groupIndex)
-        }
-        this.renderPaymentMethods()
-      })
-    })
+    // Note: Group expand/collapse events are handled by event delegation in setupPaymentMethodGroupEvents()
 
     // Setup image load error handling
     const defaultIconSvg = `
@@ -1529,13 +1947,139 @@ class PaymentPanel extends HTMLElement {
       })
     }
 
-    // Payment method selection (use event delegation since list is dynamically generated)
+    // Selection item click handler (use event delegation since list is dynamically generated)
     if (this.panel) {
       this.panel.addEventListener('click', (e) => {
-        const target = (e.target as HTMLElement).closest('.payment-method')
-        if (target && !target.closest('.payment-method-group-header')) {
+        // Handle new selection-item clicks
+        const selectionTarget = (e.target as HTMLElement).closest('.selection-item')
+        if (selectionTarget) {
           e.stopPropagation()
-          const index = parseInt(target.getAttribute('data-index') || '0')
+          const sectionIndex = parseInt(selectionTarget.getAttribute('data-section-index') || '0')
+          const itemIndexInSection = parseInt(selectionTarget.getAttribute('data-item-index') || '0')
+
+          if (this.selectionSections && this.selectionSections[sectionIndex]) {
+            const section = this.selectionSections[sectionIndex]
+            const item = section.items[itemIndexInSection]
+
+            if (item) {
+              const currentSelections = this.selectedItems.get(sectionIndex) || []
+              const itemAlreadySelected = currentSelections.includes(item)
+
+              if (section.multiple) {
+                // Multiple selection mode
+                if (itemAlreadySelected) {
+                  // Deselect
+                  const newSelections = currentSelections.filter(i => i !== item)
+                  this.selectedItems.set(sectionIndex, newSelections)
+                } else {
+                  // Select
+                  this.selectedItems.set(sectionIndex, [...currentSelections, item])
+                }
+              } else {
+                // Single selection mode
+                if (itemAlreadySelected) {
+                  // Deselect (optional behavior)
+                  this.selectedItems.set(sectionIndex, [])
+                } else {
+                  // Select and clear others in same section
+                  this.selectedItems.set(sectionIndex, [item])
+                }
+              }
+
+              // If selection changed, clear entered password
+              if (this.currentPassword.length > 0) {
+                this.currentPassword = ''
+                this.renderPasswordDots()
+              }
+
+              // Re-render to update UI
+              this.renderSelectionSections()
+            }
+          }
+          return
+        }
+
+        // Handle payment-method-group-header clicks (for lazy loading)
+        const groupHeaderTarget = (e.target as HTMLElement).closest('.payment-method-group-header')
+        if (groupHeaderTarget) {
+          e.stopPropagation()
+          const groupIndex = parseInt(groupHeaderTarget.getAttribute('data-group-header') || '0')
+
+          // Ignore clicks when loading
+          if (this.loadingGroups.has(groupIndex)) {
+            return
+          }
+
+          if (this.expandedGroups.has(groupIndex)) {
+            // Collapse
+            this.expandedGroups.delete(groupIndex)
+            this.renderPaymentMethods()
+          } else {
+            const method = this.paymentMethods[groupIndex]
+
+            if (!method) {
+              console.warn('Method not found at index:', groupIndex)
+              return
+            }
+
+            const isChildrenFunction = typeof method.children === 'function'
+            const isChildrenArray = Array.isArray(method.children)
+            const needsLoading = method.children && !isChildrenArray && !this.loadedChildren.has(groupIndex)
+
+            console.log('Group click:', groupIndex, 'type:', isChildrenFunction ? 'function' : isChildrenArray ? 'array' : 'promise', 'isLoaded:', this.loadedChildren.has(groupIndex))
+
+            // Check if children needs to be loaded (Promise or Function) and not yet loaded
+            if (needsLoading) {
+              console.log('Starting async load for group:', groupIndex)
+              // Show loading state (don't expand yet)
+              this.loadingGroups.add(groupIndex)
+              this.renderPaymentMethods()
+
+              // Load children asynchronously
+              ;(async () => {
+                try {
+                  // Get the Promise (either directly or by calling the function)
+                  let childrenPromise: Promise<PaymentMethod[]>
+                  if (isChildrenFunction) {
+                    console.log('Calling function to get promise for group:', groupIndex)
+                    childrenPromise = (method.children as (() => Promise<PaymentMethod[]>))()
+                  } else {
+                    childrenPromise = method.children as Promise<PaymentMethod[]>
+                  }
+
+                  console.log('Awaiting promise for group:', groupIndex)
+                  const children = await childrenPromise
+                  console.log('Loaded children for group:', groupIndex, 'count:', children.length)
+                  // Cache the loaded children
+                  this.loadedChildren.set(groupIndex, children)
+                  // Remove loading state
+                  this.loadingGroups.delete(groupIndex)
+                  // Now expand the group
+                  this.expandedGroups.add(groupIndex)
+                  // Re-render with loaded children
+                  this.renderPaymentMethods()
+                } catch (error) {
+                  console.error('Failed to load children for group:', groupIndex, error)
+                  // On error, remove loading state
+                  this.loadingGroups.delete(groupIndex)
+                  this.renderPaymentMethods()
+                }
+              })()
+            } else {
+              // Children already loaded or is a direct array, expand immediately
+              console.log('Expanding immediately (already loaded or array):', groupIndex)
+              this.expandedGroups.add(groupIndex)
+              this.renderPaymentMethods()
+            }
+          }
+          return
+        }
+
+        // Handle legacy payment-method clicks
+        const paymentTarget = (e.target as HTMLElement).closest('.payment-method')
+        if (paymentTarget && !paymentTarget.closest('.payment-method-group-header')) {
+          e.stopPropagation()
+          const index = parseInt(paymentTarget.getAttribute('data-index') || '0')
           const allMethods = this.getAllMethods()
           if (allMethods[index]) {
             // If payment method changed, clear entered password
@@ -1546,7 +2090,7 @@ class PaymentPanel extends HTMLElement {
             this.selectedMethod = allMethods[index]
             const paymentMethods = this.shadow.querySelectorAll('.payment-method')
             paymentMethods.forEach((m) => m.classList.remove('selected'))
-            target.classList.add('selected')
+            paymentTarget.classList.add('selected')
           }
         }
       })
@@ -1808,15 +2352,18 @@ class PaymentPanel extends HTMLElement {
   public open(amount?: number | string) {
     if (this.isOpen) return
 
-    // Each time it opens, if custom payment methods haven't been set, restore to default (empty array)
-    // This prevents previously set payment methods from affecting subsequent opens
-    if (!this.hasCustomPaymentMethods) {
+    // Each time it opens, if custom selections haven't been set, restore to default (empty array)
+    // This prevents previously set selections from affecting subsequent opens
+    if (!this.hasCustomSelections && !this.hasCustomPaymentMethods) {
+      this.selectionSections = []
       this.paymentMethods = [...PaymentPanel.DEFAULT_PAYMENT_METHODS]
       this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
+      this.selectedItems.clear()
       this.selectedMethod = null
-      this.renderPaymentMethods()
+      this.renderSelectionSections()
     }
-    // After each open, reset flag so next open will use defaults if not set
+    // After each open, reset flags so next open will use defaults if not set
+    this.hasCustomSelections = false
     this.hasCustomPaymentMethods = false
 
     this.isOpen = true
@@ -1924,7 +2471,70 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * Set payment methods list
+   * Set selection sections
+   * Sets custom selection sections with titles and items
+   * @param {SelectionSection[]} [sections] - Selection sections array
+   * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
+   * @author Brid9e
+   */
+  public setSelectionSections(sections?: SelectionSection[], fieldMapping?: FieldMapping) {
+    // If not provided, use empty array
+    if (sections === undefined) {
+      this.selectionSections = []
+      this.fieldMapping = { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
+      this.hasCustomSelections = false
+    } else {
+      this.selectionSections = sections
+      this.fieldMapping = fieldMapping || { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
+      this.hasCustomSelections = true
+    }
+
+    // Clear legacy payment methods when using new API
+    this.paymentMethods = []
+    this.hasCustomPaymentMethods = false
+
+    // Reset selected state and set defaults BEFORE rendering
+    this.selectedItems.clear()
+    if (this.selectionSections.length > 0) {
+      const valueField = this.fieldMapping.valueField || 'value'
+
+      // Auto-select for single selection sections
+      this.selectionSections.forEach((section, index) => {
+        if (!section.multiple && section.items.length > 0) {
+          let defaultItem: SelectionItem | null = null
+
+          // If defaultValue is specified, find the matching item
+          if (section.defaultValue !== undefined) {
+            defaultItem = section.items.find(item => {
+              const itemValue = item[valueField] !== undefined
+                ? item[valueField]
+                : (item.value !== undefined ? item.value : item.id)
+              return itemValue === section.defaultValue
+            }) || null
+          }
+
+          // If no defaultValue or not found, use first item
+          if (!defaultItem) {
+            defaultItem = section.items[0]
+          }
+
+          if (defaultItem) {
+            this.selectedItems.set(index, [defaultItem])
+          }
+        }
+      })
+    }
+
+    // Re-render selection sections AFTER setting defaults
+    this.renderSelectionSections()
+
+    // Update UI when selections change
+    this.updatePasswordUI()
+  }
+
+  /**
+   * Set payment methods list (legacy)
+   * @deprecated Use setSelectionSections instead
    * Sets custom payment methods list and field mapping configuration, supports two-level grouping structure
    * @param {PaymentMethod[]} [methods] - Payment methods list, uses default list if empty
    * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
@@ -1941,19 +2551,32 @@ class PaymentPanel extends HTMLElement {
       this.fieldMapping = fieldMapping || { ...PaymentPanel.DEFAULT_FIELD_MAPPING }
       this.hasCustomPaymentMethods = true // Mark as custom payment methods set
     }
+
+    // Clear new selection sections when using legacy API
+    this.selectionSections = []
+    this.hasCustomSelections = false
+
+    // Clear lazy-loaded children cache
+    this.loadedChildren.clear()
+    this.expandedGroups.clear()
+    this.loadingGroups.clear()
+
     // Re-render payment methods list
-    this.renderPaymentMethods()
+    this.renderSelectionSections()
     // Reset selected state
     if (this.paymentMethods.length > 0) {
       // Flatten to find first selectable option
       const flattenMethods = (methods: PaymentMethod[]): PaymentMethod[] => {
         const result: PaymentMethod[] = []
         methods.forEach(method => {
-          if (method.children && method.children.length > 0) {
+          // Only flatten if children is an array (not a Promise)
+          if (method.children && Array.isArray(method.children) && method.children.length > 0) {
             result.push(...flattenMethods(method.children))
-          } else {
+          } else if (!method.children) {
+            // Only include leaf nodes (no children property)
             result.push(method)
           }
+          // Skip Promise children as they're not loaded yet
         })
         return result
       }
@@ -1984,12 +2607,18 @@ class PaymentPanel extends HTMLElement {
    */
   private getAllMethods(): PaymentMethod[] {
     const result: PaymentMethod[] = []
-    this.paymentMethods.forEach(method => {
-      if (method.children && method.children.length > 0) {
-        result.push(...method.children)
-      } else {
+    this.paymentMethods.forEach((method, index) => {
+      // Check if children is loaded (from cache or direct array)
+      const loadedChildren = this.loadedChildren.get(index)
+      const childrenArray = loadedChildren || (Array.isArray(method.children) ? method.children : null)
+
+      if (childrenArray && childrenArray.length > 0) {
+        result.push(...childrenArray)
+      } else if (!method.children) {
+        // Only include if it's a leaf node (no children property)
         result.push(method)
       }
+      // Skip Promise children that are not loaded yet
     })
     return result
   }
@@ -2132,35 +2761,45 @@ class PaymentPanel extends HTMLElement {
     this.iconDisplay = config.iconDisplay !== undefined
       ? config.iconDisplay
       : DEFAULT_CONFIG.iconDisplay
-    // If icon display mode changed, need to re-render payment methods list
+    // If icon display mode changed, need to re-render
     if (config.iconDisplay !== undefined) {
-      this.renderPaymentMethods()
+      this.renderSelectionSections()
     }
 
     this.emptyStateText = config.emptyStateText !== undefined ? config.emptyStateText : undefined
-    // If empty state text changed, need to re-render payment methods list
+    // If empty state text changed, need to re-render
     if (config.emptyStateText !== undefined) {
-      this.renderPaymentMethods()
+      this.renderSelectionSections()
     }
 
     this.autoCloseOnConfirm = config.autoCloseOnConfirm !== undefined
       ? config.autoCloseOnConfirm
       : DEFAULT_CONFIG.autoCloseOnConfirm
 
-    this.allowConfirmWithoutMethods = config.allowConfirmWithoutMethods !== undefined
-      ? config.allowConfirmWithoutMethods
-      : DEFAULT_CONFIG.allowConfirmWithoutMethods
-    // If allowConfirmWithoutMethods changed, need to update UI
-    if (config.allowConfirmWithoutMethods !== undefined) {
+    // Handle allowConfirm config (new and legacy)
+    if (config.allowConfirmWithoutSelections !== undefined) {
+      this.allowConfirmWithoutSelections = config.allowConfirmWithoutSelections
+      this.allowConfirmWithoutMethods = config.allowConfirmWithoutSelections // Keep legacy in sync
+    } else {
+      this.allowConfirmWithoutSelections = DEFAULT_CONFIG.allowConfirmWithoutSelections
+      this.allowConfirmWithoutMethods = DEFAULT_CONFIG.allowConfirmWithoutSelections
+    }
+    // If allowConfirm settings changed, need to update UI
+    if (config.allowConfirmWithoutSelections !== undefined) {
       this.updatePasswordUI()
     }
 
-    this.hidePaymentMethods = config.hidePaymentMethods !== undefined
-      ? config.hidePaymentMethods
-      : DEFAULT_CONFIG.hidePaymentMethods
-    // If hidePaymentMethods changed, need to update visibility
-    if (config.hidePaymentMethods !== undefined) {
-      this.updatePaymentMethodsVisibility()
+    // Handle hideSelections config (new and legacy)
+    if (config.hideSelections !== undefined) {
+      this.hideSelections = config.hideSelections
+      this.hidePaymentMethods = config.hideSelections // Keep legacy in sync
+    } else {
+      this.hideSelections = DEFAULT_CONFIG.hideSelections
+      this.hidePaymentMethods = DEFAULT_CONFIG.hideSelections
+    }
+    // If hide settings changed, need to update visibility
+    if (config.hideSelections !== undefined) {
+      this.updateSelectionSectionsVisibility()
     }
 
     this.amountAlign = config.amountAlign !== undefined
@@ -2301,25 +2940,49 @@ class PaymentPanel extends HTMLElement {
   }
 
   /**
-   * Set whether to allow confirm without payment methods
+   * Set whether to allow confirm without selections
+   * Sets whether to allow password input and confirm buttons when no selections are available
+   * @param {boolean} allow - Whether to allow confirm without selections
+   * @author Brid9e
+   */
+  public setAllowConfirmWithoutSelections(allow: boolean) {
+    this.allowConfirmWithoutSelections = allow
+    this.allowConfirmWithoutMethods = allow // Keep legacy in sync
+    this.updatePasswordUI()
+  }
+
+  /**
+   * Set whether to allow confirm without payment methods (legacy)
+   * @deprecated Use setAllowConfirmWithoutSelections instead
    * Sets whether to allow password input and confirm buttons when no payment methods are available
    * @param {boolean} allow - Whether to allow confirm without payment methods
    * @author Brid9e
    */
   public setAllowConfirmWithoutMethods(allow: boolean) {
-    this.allowConfirmWithoutMethods = allow
-    this.updatePasswordUI()
+    this.setAllowConfirmWithoutSelections(allow)
   }
 
   /**
-   * Set whether to hide payment methods section
+   * Set whether to hide selection sections
+   * Sets whether to hide selection sections, only show amount and confirm button/password input
+   * @param {boolean} hide - Whether to hide selection sections
+   * @author Brid9e
+   */
+  public setHideSelections(hide: boolean) {
+    this.hideSelections = hide
+    this.hidePaymentMethods = hide // Keep legacy in sync
+    this.updateSelectionSectionsVisibility()
+  }
+
+  /**
+   * Set whether to hide payment methods section (legacy)
+   * @deprecated Use setHideSelections instead
    * Sets whether to hide payment methods section, only show amount and confirm button/password input
    * @param {boolean} hide - Whether to hide payment methods section
    * @author Brid9e
    */
   public setHidePaymentMethods(hide: boolean) {
-    this.hidePaymentMethods = hide
-    this.updatePaymentMethodsVisibility()
+    this.setHideSelections(hide)
   }
 
   /**
@@ -2463,12 +3126,6 @@ class PaymentPanel extends HTMLElement {
       amountLabel.textContent = texts.amountLabel
     }
 
-    // Update payment methods title
-    const paymentMethodsTitle = this.shadow.querySelector('.payment-methods-title') as HTMLElement
-    if (paymentMethodsTitle) {
-      paymentMethodsTitle.textContent = texts.paymentMethodsTitle
-    }
-
     // Update password label
     const passwordLabel = this.shadow.querySelector('.password-label') as HTMLElement
     if (passwordLabel) {
@@ -2606,6 +3263,6 @@ if (!customElements.get('payment-panel')) {
 }
 
 // Export types (re-export from types folder)
-export type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
+export type { PaymentMethod, SelectionSection, SelectionItem, FieldMapping, PaymentPanelConfig } from './types'
 
 export default PaymentPanel

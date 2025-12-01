@@ -1,6 +1,38 @@
 /**
- * Payment method interface
- * Defines the data structure for payment methods, supports two-level grouping
+ * Selection item interface
+ * Defines the data structure for selection items
+ * @author Brid9e
+ */
+export interface SelectionItem {
+  /** Allows any field */
+  [key: string]: any
+  /** Must have a unique identifier */
+  value: string | number
+}
+
+/**
+ * Selection section interface
+ * Defines the data structure for custom selection sections, supports tree structure
+ * @author Brid9e
+ */
+export interface SelectionSection {
+  /** Section title */
+  title: string
+  /** Selection items list */
+  items: SelectionItem[]
+  /** Unique key for this section, used in result object. If not provided, uses numeric index */
+  key?: string
+  /** Selection mode: 'single' (default) or 'multiple' */
+  multiple?: boolean
+  /** Required selection, default false */
+  required?: boolean
+  /** Default selected value (only for single selection mode), matches the value field of item */
+  defaultValue?: string | number
+}
+
+/**
+ * Payment method interface (Deprecated, kept for backward compatibility)
+ * @deprecated Use SelectionItem and SelectionSection instead
  * @author Brid9e
  */
 export interface PaymentMethod {
@@ -8,8 +40,14 @@ export interface PaymentMethod {
   [key: string]: any
   /** Must have a unique identifier */
   value: string | number
-  /** Child payment methods list, used for two-level grouping */
-  children?: PaymentMethod[]
+  /**
+   * Child payment methods list, used for two-level grouping.
+   * Can be:
+   * - Array: Direct child items (loaded immediately)
+   * - Promise: Lazy loading (starts loading when created)
+   * - Function: Returns Promise, called when user clicks to expand (recommended for lazy loading)
+   */
+  children?: PaymentMethod[] | Promise<PaymentMethod[]> | (() => Promise<PaymentMethod[]>)
 }
 
 /**
@@ -62,7 +100,6 @@ export interface ThemeConfig {
 export interface I18nTexts {
   headerTitle: string
   amountLabel: string
-  paymentMethodsTitle: string
   passwordLabel: string
   cancelButton: string
   confirmButton: string
@@ -101,17 +138,17 @@ export interface PaymentPanelConfig {
   /** Icon display mode, default "always" */
   iconDisplay?: 'always' | 'never' | 'auto'
 
-  /** Empty state text displayed when payment methods are empty, default "No payment methods available" */
+  /** Empty state text displayed when selection sections are empty, default "No items available" */
   emptyStateText?: string
 
   /** Whether to automatically close panel after password input completes or submit button is clicked, default false */
   autoCloseOnConfirm?: boolean
 
-  /** Whether to allow password input and confirm buttons when no payment methods are available, default true */
-  allowConfirmWithoutMethods?: boolean
+  /** Whether to allow password input and confirm buttons when no selection sections are available, default true */
+  allowConfirmWithoutSelections?: boolean
 
-  /** Whether to hide payment methods section, only show amount and confirm button/password input, default false */
-  hidePaymentMethods?: boolean
+  /** Whether to hide selection sections, only show amount and confirm button/password input, default false */
+  hideSelections?: boolean
 
   /** Amount alignment, default "left" */
   amountAlign?: 'left' | 'center' | 'right'

@@ -1,5 +1,5 @@
 import PaymentPanel from './payment-panel'
-import type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
+import type { PaymentMethod, SelectionSection, SelectionItem, FieldMapping, PaymentPanelConfig } from './types'
 
 // Build-time variable to control global mount (replaced by rollup plugin)
 declare const __ENABLE_GLOBAL_MOUNT__: boolean | undefined
@@ -79,7 +79,18 @@ const pypjs = {
   },
 
   /**
-   * Set payment methods list
+   * Set selection sections
+   * @param {SelectionSection[]} [sections] - Selection sections array
+   * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
+   * @author Brid9e
+   */
+  setSelectionSections(sections?: SelectionSection[], fieldMapping?: FieldMapping) {
+    getInstance().setSelectionSections(sections, fieldMapping)
+  },
+
+  /**
+   * Set payment methods list (legacy)
+   * @deprecated Use setSelectionSections instead
    * @param {PaymentMethod[]} [methods] - Payment methods list, uses default list if empty
    * @param {FieldMapping} [fieldMapping] - Field mapping configuration for custom field names
    * @author Brid9e
@@ -198,8 +209,18 @@ const pypjs = {
 
 
   /**
-   * Set whether to allow confirm without payment methods
-   * Sets whether to allow password input and confirm buttons when no payment methods are available
+   * Set whether to allow confirm without selections
+   * Sets whether to allow password input and confirm buttons when no selections are available
+   * @param {boolean} allow - Whether to allow confirm without selections
+   * @author Brid9e
+   */
+  setAllowConfirmWithoutSelections(allow: boolean) {
+    getInstance().setAllowConfirmWithoutSelections(allow)
+  },
+
+  /**
+   * Set whether to allow confirm without payment methods (legacy)
+   * @deprecated Use setAllowConfirmWithoutSelections instead
    * @param {boolean} allow - Whether to allow confirm without payment methods
    * @author Brid9e
    */
@@ -208,8 +229,18 @@ const pypjs = {
   },
 
   /**
-   * Set whether to hide payment methods section
-   * Sets whether to hide payment methods section, only show amount and confirm button/password input
+   * Set whether to hide selection sections
+   * Sets whether to hide selection sections, only show amount and confirm button/password input
+   * @param {boolean} hide - Whether to hide selection sections
+   * @author Brid9e
+   */
+  setHideSelections(hide: boolean) {
+    getInstance().setHideSelections(hide)
+  },
+
+  /**
+   * Set whether to hide payment methods section (legacy)
+   * @deprecated Use setHideSelections instead
    * @param {boolean} hide - Whether to hide payment methods section
    * @author Brid9e
    */
@@ -358,5 +389,5 @@ if (typeof window !== 'undefined' && (typeof __ENABLE_GLOBAL_MOUNT__ === 'undefi
 }
 
 // Export
-export type { PaymentMethod, FieldMapping, PaymentPanelConfig } from './types'
+export type { PaymentMethod, SelectionSection, SelectionItem, FieldMapping, PaymentPanelConfig } from './types'
 export default pypjs

@@ -8,10 +8,9 @@ import { I18nTexts } from '../types'
 export const zh: I18nTexts = {
   headerTitle: '支付',
   amountLabel: '支付金额',
-  paymentMethodsTitle: '选择支付方式',
   passwordLabel: '请输入支付密码',
   cancelButton: '取消',
   confirmButton: '确认支付',
-  emptyStateText: '暂无支付方式',
+  emptyStateText: '暂无选项',
   closeAriaLabel: '关闭'
 }
